@@ -1,16 +1,15 @@
-import socketio from 'socket.io'
+let socket
 
-let io
-
-var startSocketIOServer = (server): void => {
-  io = socketio(server)
-  var address = io.handshake.address
-  console.log(
-    'New connection from ' +
-      String(address.address) +
-      ':' +
-      String(address.port)
-  )
+var assignSocketToApi = (connectedSocket): void => {
+  socket = connectedSocket
+  openSocketChannels()
 }
 
-export { startSocketIOServer }
+var openSocketChannels = (): void => {
+  socket.emit('news', { hello: 'world' })
+  socket.on('my other event', (data) => {
+    console.log(data)
+  })
+}
+
+export { assignSocketToApi }

@@ -15,7 +15,7 @@
         "prefer-arrow"
     ],
     "rules": {
-        "@typescript-eslint/strict-boolean-expressions": ["error", {"allowSafe":true}],
+        "@typescript-eslint/strict-boolean-expressions": "off",
         "func-style": ["error", "expression"],
         "prefer-arrow/prefer-arrow-functions": [
             "error",
