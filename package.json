@@ -1,0 +1,61 @@
+{
+  "name": "backend.cards.io",
+  "description": "Backend for cards.io",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "literature.js",
+  "scripts": {
+    "start": "tsc && node ./dist/app.js",
+    "lint:fix": "eslint **/*.ts --fix",
+    "lint": "eslint **/*.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NavenAllen/backend.cards.io.git"
+  },
+  "author": "Delta",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NavenAllen/backend.cards.io/issues"
+  },
+  "homepage": "https://github.com/NavenAllen/backend.cards.io#readme",
+  "engines": {
+    "node": ">=8.10.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  },
+  "dependencies": {
+    "async": "^3.2.0",
+    "express": "^4.17.1",
+    "rethinkdb": "^2.4.2",
+    "socket.io": "^2.3.0",
+    "thinky": "^2.3.9",
+    "typescript": "^3.8.3"
+  },
+  "devDependencies": {
+    "@types/node": "^13.9.3",
+    "@typescript-eslint/eslint-plugin": "^2.25.0",
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "eslint": "^6.8.0",
+    "eslint-config-standard-with-typescript": "^15.0.1",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-node": "^11.0.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "husky": "^4.2.3",
+    "lint-staged": "^10.0.9",
+    "nodemon": "^2.0.2",
+    "prettier": "^2.0.2"
+  }
+}
