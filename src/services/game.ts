@@ -1,28 +1,51 @@
 import { Game } from '../engine'
-import { Game as GameModel } from '../models'
+import { GameModel, PlayerModel } from '../models'
+import { thinky } from '../util/thinky'
 
-var createGame = (
-  gameDetails: Game,
-  onGameCreationSuccess: Function,
-  onGameCreationFailure: Function
-): void => {
-  var gameObject = new GameModel({
-    type: gameDetails.getType(),
-    code: gameDetails.getCode(),
-    deck: gameDetails.getGameDeck().allCardsToString(),
-    pile: gameDetails.getPileStateString(),
-    maxPlayers: gameDetails.getMaxPlayers(),
-    isTeam: gameDetails.ifTeamGame()
-  })
+const r = thinky.r
 
-  gameObject
-    .save()
-    .then((result) => {
-      onGameCreationSuccess(result)
-    })
-    .error((err) => {
-      onGameCreationFailure(err)
-    })
+var createGame = async (
+	game: Game,
+	ownerId: string,
+	onGameCreationSuccess: Function,
+	onGameCreationFailure: Function
+) => {
+	var gameObject = new GameModel({
+		type: game.type,
+		code: game.code,
+		deck: game.deck.getCardsAsString(),
+		pile: game.getPileStateString(),
+		currentTurn: game.currentTurn,
+		maxPlayers: game.maxPlayers,
+		isTeam: game.ifTeamGame
+	})
+
+	await PlayerModel.get(ownerId).run().then((player) => {
+		gameObject.owner = player
+		gameObject.players = [ player ]
+	}).error((err) => {
+		console.log(err)
+	})
+
+	await gameObject.saveAll({owner: true, players: true}).then((result) => {
+		onGameCreationSuccess(result)
+	}).error((err) => {
+		onGameCreationFailure(err)
+	})
+
+	// console.log(gameObject)
 }
 
-export { createGame }
+var addPlayerToGame = async (gameCode: string, playerId: string) => {
+	let game = await GameModel.get(gameCode).getJoin({players: true}).run()
+	let player = await PlayerModel.get(playerId).run()
+	game.players.push(player)
+	await game.saveAll({owner: true, players: true})
+}
+
+var getGameByCode = async (gameCode: string) => {
+	let game = await GameModel.filter(r.row('code').eq(gameCode)).getJoin({players: true}).run()
+	return game
+}
+
+export { createGame, addPlayerToGame, getGameByCode }

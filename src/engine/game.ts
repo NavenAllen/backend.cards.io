@@ -2,155 +2,159 @@ import { Card, Deck, Player } from './index'
 import { GameService } from '../services'
 
 var GameError = (message): Error => {
-  const error = new Error(message)
-  error.message = 'GameError'
-  return error
+	const error = new Error(message)
+	error.message = 'GameError'
+	return error
 }
 GameError.prototype = Object.create(Error.prototype)
 
 export class Game {
-  type: string;
-  code: string;
-  nextPosition: number;
-  gameDeck: Deck;
-  maxPlayers: number;
-  isTeamGame: boolean;
-  players: Player[];
-  pileState: Card[];
-  currentTurn: number;
-  databaseObjectId: string;
-  processRound: Function;
-  decideStarter: (player: Player) => boolean;
-  decideTurn: Function;
+	private _type: string;
+	private _code: string;
+	private _deck: Deck;
+	private _maxPlayers: number;
+	private _isTeamGame: boolean;
+	private _players: Player[];
+	private _pile: Card[];
+	private _currentTurn: number;
+	private _databaseObjectId: string;
+	processRound: Function;
+	decideStarter: (player: Player) => boolean;
+	decideTurn: Function;
 
-  constructor (deck: Deck, maxPlayers: number, isTeamGame: boolean) {
-    this.nextPosition = 0
-    this.code = this.randomString(6)
-    this.gameDeck = deck
-    this.maxPlayers = maxPlayers
-    this.isTeamGame = isTeamGame
-    this.players = []
-    this.pileState = []
-    // this.currentRound = [];
-    GameService.createGame(
-      this,
-      this.onGameCreationSuccess,
-      this.onGameCreationFailure
-    )
-  }
+	constructor (type: string, deck: Deck, maxPlayers: number, isTeamGame: boolean, players: string[] = []) {
+		this._type = type
+		this._code = this.randomString(10)
+		this._deck = deck
+		this._maxPlayers = maxPlayers
+		this._isTeamGame = isTeamGame
+		this._players = []
+		this._pile = []
+		// this.currentRound = [];
+	}
 
-  onGameCreationSuccess = (data): void => {
-    this.databaseObjectId = data.id
-  };
+	static async build(type: string, deck: Deck, maxPlayers: number, isTeamGame: boolean, ownerId: string) {
+		var g = new Game(type, deck, maxPlayers, isTeamGame)
+		await GameService.createGame(g, ownerId, g.onGameCreationSuccess, g.onGameCreationFailure)
+		return g
+	}
 
-  onGameCreationFailure = (error): void => {
-    throw GameError(error.msg)
-  };
+	onGameCreationSuccess = (data): void => {
+		this._databaseObjectId = data.id
+	};
 
-  getType = (): string => {
-    return this.type
-  };
+	onGameCreationFailure = (error): void => {
+		throw GameError(error.msg)
+	};
 
-  getCode = (): string => {
-    return this.code
-  };
+	get id(): string {
+		return this._databaseObjectId;
+	}
 
-  getGameDeck = (): Deck => {
-    return this.gameDeck
-  };
+	get type(): string {
+		return this._type
+	};
 
-  ifTeamGame = (): boolean => {
-    return this.isTeamGame
-  };
+	get code(): string {
+		return this._code
+	};
 
-  getPlayers = (): Player[] => {
-    return this.players
-  };
+	get deck(): Deck {
+		return this._deck
+	};
 
-  getPileState = (): Card[] => {
-    return this.pileState
-  };
+	get ifTeamGame(): boolean {
+		return this._isTeamGame
+	};
 
-  getPileStateString = (): String[] => {
-    return this.pileState.map((c) => {
-      return c.getNumber() + c.getSuite()
-    })
-  };
+	get players(): Player[] {
+		return this._players
+	};
 
-  getCurrentTurn = (): number => {
-    return this.currentTurn
-  };
+	get pile(): Card[] {
+		return this._pile
+	};
 
-  getMaxPlayers = (): number => {
-    return this.maxPlayers
-  };
+	getPileStateString = (): String[] => {
+		return this._pile.map((c) => {
+			return c.number + c.suite
+		})
+	};
 
-  addPlayer = (newPlayer: Player): void => {
-    if (this.players.length === this.maxPlayers) {
-      throw GameError('Player limit reached')
-    } else {
-      newPlayer.assignPosition(this.nextPosition++)
-      this.players.push(newPlayer)
-    }
-  };
+	get currentTurn(): number {
+		return this._currentTurn
+	};
 
-  discardToPile = (card): void => {
-    this.pileState.push(card)
-  };
+	get maxPlayers(): number {
+		return this._maxPlayers
+	};
 
-  setRoundProcessor = (processor): void => {
-    // processor should clear pile after every round
-    this.processRound = processor.bind(this)
-  };
+	addPlayer = (newPlayer: Player): void => {
+		if (this._players.length === this._maxPlayers) {
+			throw GameError('Player limit reached')
+		} else {
+			newPlayer.position = this._players.length;
+			this._players.push(newPlayer)
+		}
+	};
 
-  setStartingDecision = (decision): void => {
-    if (decision === undefined) {
-      const env = {
-        random: Math.floor((Math.random() * 10) % this.players.length)
-      }
-      this.decideStarter = function (player) {
-        return player.position === this.random
-      }
-      this.decideStarter = this.decideStarter.bind(env)
-    } else {
-      this.decideStarter = decision.bind(this)
-    }
-  };
+	discardToPile = (card): void => {
+		this._pile.push(card)
+	};
 
-  makeStartingDecision = (): void => {
-    for (let i = 0; i < this.players.length; i++) {
-      if (this.decideStarter(this.players[i])) {
-        this.currentTurn = i
-        break
-      }
-    }
-  };
+	setRoundProcessor = (processor): void => {
+		// processor should clear pile after every round
+		this.processRound = processor.bind(this)
+	};
 
-  setTurnDecision = (decision): void => {
-    this.decideTurn = decision.bind(this)
-  };
+	setStartingDecision = (decision): void => {
+		if (decision === undefined) {
+			const env = {
+				random: Math.floor((Math.random() * 10) % this._players.length)
+			}
+			this.decideStarter = function (player) {
+				return player.position === this.random
+			}
+			this.decideStarter = this.decideStarter.bind(env)
+		} else {
+			this.decideStarter = decision.bind(this)
+		}
+	};
 
-  prepareGame = (cardCount = 0): void => {
-    if (this.isTeamGame && this.players.length % 2 !== 0) {
-      throw GameError('Not enough players')
-    }
+	makeStartingDecision = (): void => {
+		for (let i = 0; i < this._players.length; i++) {
+			if (this.decideStarter(this._players[i])) {
+				this._currentTurn = i
+				break
+			}
+		}
+	};
 
-    this.gameDeck
-      .deal(this.players.length, cardCount)
-      .forEach((hand, index) => {
-        this.players[index].assignHand(hand)
-        console.log(this.players[index].getHandStateString())
-      })
-  };
+	setTurnDecision = (decision): void => {
+		this.decideTurn = decision.bind(this)
+	};
 
-  randomString = (len): string => {
-    var charSet =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-    var randomString = ''
-    for (var i = 0; i < len; i++) {
-      var randomPoz = Math.floor(Math.random() * charSet.length)
-      randomString += charSet.substring(randomPoz, randomPoz + 1)
-    }
-    return randomString
-  };
+	prepareGame = (cardCount = 0): void => {
+		if (this._isTeamGame && this._players.length % 2 !== 0) {
+			throw GameError('Not enough players')
+		}
+
+		this._deck
+			.deal(this._players.length, cardCount)
+			.forEach((hand, index) => {
+				this._players[index].hand = hand
+				console.log(this._players[index].getHandAsString())
+			})
+	};
+
+	randomString = (len): string => {
+		var charSet =
+			'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+		var randomString = ''
+		for (var i = 0; i < len; i++) {
+			var randomPoz = Math.floor(Math.random() * charSet.length)
+			randomString += charSet.substring(randomPoz, randomPoz + 1)
+		}
+		return randomString
+	};
 }

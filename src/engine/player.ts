@@ -1,72 +1,100 @@
 import { Card } from './index'
+import { PlayerService } from '../services'
 
 var PlayerError = (message): Error => {
-  const error = new Error(message)
-  error.message = 'PlayerError'
-  return error
+	const error = new Error(message)
+	error.message = 'PlayerError'
+	return error
 }
 PlayerError.prototype = Object.create(Error.prototype)
 
 export class Player {
-  name: string;
-  position: number;
-  handState: Card[];
+	private _name: string;
+	private _position: number;
+	private _hand: Card[];
+	private _score: number;
+	private _databaseObjectId: string;
 
-  constructor (playerName: string) {
-    this.name = playerName
-  }
+	constructor (playerName: string) {
+		this._name = playerName
+		this._hand = []
+		this._position = -1
+		this._score = 0
+	}
 
-  getName = (): string => {
-    return this.name
-  };
+	static async build(name: string) {
+		var p = new Player(name)
+		await PlayerService.createPlayer(p, p.onPlayerCreationSuccess, p.onPlayerCreationFailure)
+		return p
+	}
 
-  getPosition = (): number => {
-    return this.position
-  };
+	onPlayerCreationSuccess = (data): void => {
+		this._databaseObjectId = data.id
+	};
 
-  getHandState = (): Card[] => {
-    return this.handState
-  };
+	onPlayerCreationFailure = (error): void => {
+		throw PlayerError(error.msg)
+	};
 
-  getHandStateString = (): string[] => {
-    return this.handState.map((c) => {
-      return c.getNumber() + c.getSuite()
-    })
-  };
+	get id(): string {
+		return this._databaseObjectId;
+	}
 
-  addToHand = (card): void => {
-    this.handState.push(card)
-  };
+	get name(): string {
+		return this._name
+	};
 
-  assignPosition = (position: number): void => {
-    this.position = position
-  };
+	get position(): number {
+		return this._position
+	};
 
-  assignHand = (hand: Card[]): void => {
-    this.handState = hand
-  };
+	get score(): number {
+		return this._score;
+	}
 
-  getIndexOf = (card): number => {
-    for (let i = 0; i < this.handState.length; i++) {
-      if (this.handState[i].value === card.value) {
-        return i
-      }
-    }
-    return -1
-  };
+	get hand(): Card[] {
+		return this._hand
+	};
 
-  discardFromHand = (card): void => {
-    const index = this.getIndexOf(card)
-    if (index === -1) {
-      throw PlayerError('Does not have the requested card')
-    } else {
-      this.handState.splice(index, index + 1)
-    }
-  };
+	getHandAsString = (): string[] => {
+		return this._hand.map((c) => {
+			return c.number + c.suite
+		});
+	};
 
-  sortHand = (): void => {
-    this.handState.sort((a, b) => {
-      return a.value - b.value
-    })
-  };
+	add = (card: Card): void => {
+		this._hand.push(card)
+	};
+
+	set position(position: number) {
+		this._position = position
+	};
+
+	set hand(hand: Card[]) {
+		this._hand = hand
+	};
+
+	getIndexOf = (card): number => {
+		for (let i = 0; i < this._hand.length; i++) {
+			if (this._hand[i].value === card.value) {
+				return i;
+			}
+		}
+		return -1;
+	};
+
+	discard = (card: Card): void => {
+		const index = this.getIndexOf(card)
+		if (index === -1) {
+			throw PlayerError('Does not have the requested card')
+		} else {
+			this._hand.splice(index, index + 1)
+		}
+	};
+
+	sort = (): void => {
+		this._hand.sort((a, b) => {
+			return a.value - b.value
+		});
+	};
 }
