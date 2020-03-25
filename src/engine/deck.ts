@@ -1,5 +1,3 @@
-import { CardService } from '../services'
-
 var DeckError = (message: string): Error => {
   const error = new Error(message)
   error.message = 'DeckError'
@@ -39,11 +37,6 @@ export class Card {
       case 'JOKER':
         this.value = 500
     }
-    CardService.createCard(
-      this,
-      this.onCardCreationSuccess,
-      this.onCardCreationFailure
-    )
   }
 
   getNumber = (): string => {
@@ -56,15 +49,6 @@ export class Card {
 
   getValue = (): number => {
     return this.value
-  };
-
-  onCardCreationSuccess = (id: string): void => {
-    this.dataObjectId = id
-    console.log(this.dataObjectId)
-  };
-
-  onCardCreationFailure = (error: string): void => {
-    throw DeckError(error)
   };
 }
 
