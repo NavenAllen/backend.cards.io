@@ -1,4 +1,5 @@
 import { Card, Deck, Player } from './index'
+import { GameService } from '../services'
 
 var GameError = (message): Error => {
   const error = new Error(message)
@@ -8,6 +9,8 @@ var GameError = (message): Error => {
 GameError.prototype = Object.create(Error.prototype)
 
 export class Game {
+  type: string;
+  code: string;
   nextPosition: number;
   gameDeck: Deck;
   maxPlayers: number;
@@ -15,19 +18,72 @@ export class Game {
   players: Player[];
   pileState: Card[];
   currentTurn: number;
+  databaseObjectId: string;
   processRound: Function;
   decideStarter: (player: Player) => boolean;
   decideTurn: Function;
 
   constructor (deck: Deck, maxPlayers: number, isTeamGame: boolean) {
     this.nextPosition = 0
+    this.code = this.randomString(6)
     this.gameDeck = deck
     this.maxPlayers = maxPlayers
     this.isTeamGame = isTeamGame
     this.players = []
     this.pileState = []
     // this.currentRound = [];
+    GameService.createGame(
+      this,
+      this.onGameCreationSuccess,
+      this.onGameCreationFailure
+    )
   }
+
+  onGameCreationSuccess = (data): void => {
+    this.databaseObjectId = data.id
+  };
+
+  onGameCreationFailure = (error): void => {
+    throw GameError(error.msg)
+  };
+
+  getType = (): string => {
+    return this.type
+  };
+
+  getCode = (): string => {
+    return this.code
+  };
+
+  getGameDeck = (): Deck => {
+    return this.gameDeck
+  };
+
+  ifTeamGame = (): boolean => {
+    return this.isTeamGame
+  };
+
+  getPlayers = (): Player[] => {
+    return this.players
+  };
+
+  getPileState = (): Card[] => {
+    return this.pileState
+  };
+
+  getPileStateString = (): String[] => {
+    return this.pileState.map((c) => {
+      return c.getNumber() + c.getSuite()
+    })
+  };
+
+  getCurrentTurn = (): number => {
+    return this.currentTurn
+  };
+
+  getMaxPlayers = (): number => {
+    return this.maxPlayers
+  };
 
   addPlayer = (newPlayer: Player): void => {
     if (this.players.length === this.maxPlayers) {
@@ -83,7 +139,18 @@ export class Game {
       .deal(this.players.length, cardCount)
       .forEach((hand, index) => {
         this.players[index].assignHand(hand)
-        console.log(this.players[index].myHandToString())
+        console.log(this.players[index].getHandStateString())
       })
+  };
+
+  randomString = (len): string => {
+    var charSet =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    var randomString = ''
+    for (var i = 0; i < len; i++) {
+      var randomPoz = Math.floor(Math.random() * charSet.length)
+      randomString += charSet.substring(randomPoz, randomPoz + 1)
+    }
+    return randomString
   };
 }

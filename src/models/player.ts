@@ -3,7 +3,7 @@ import { thinky } from '../util/thinky'
 var type = thinky.type
 
 // Create the model
-var Player = thinky.createMode('player', {
+var Player = thinky.createModel('player', {
   id: type.string(),
   name: type.string(),
   position: type.number(),

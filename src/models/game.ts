@@ -5,7 +5,7 @@ import { Player } from './index'
 var type = thinky.type
 
 // Create the model
-var Game = thinky.createMode('game', {
+var Game = thinky.createModel('game', {
   id: type.string(),
   type: type.string(),
   code: type.string(),

@@ -16,19 +16,19 @@ export class Player {
     this.name = playerName
   }
 
-  assignPosition = (pos): void => {
-    this.position = pos
+  getName = (): string => {
+    return this.name
   };
 
-  assignHand = (hand): void => {
-    this.handState = hand
+  getPosition = (): number => {
+    return this.position
   };
 
-  myHand = (): Card[] => {
+  getHandState = (): Card[] => {
     return this.handState
   };
 
-  myHandToString = (): string[] => {
+  getHandStateString = (): string[] => {
     return this.handState.map((c) => {
       return c.getNumber() + c.getSuite()
     })
@@ -36,6 +36,14 @@ export class Player {
 
   addToHand = (card): void => {
     this.handState.push(card)
+  };
+
+  assignPosition = (position: number): void => {
+    this.position = position
+  };
+
+  assignHand = (hand: Card[]): void => {
+    this.handState = hand
   };
 
   getIndexOf = (card): number => {
