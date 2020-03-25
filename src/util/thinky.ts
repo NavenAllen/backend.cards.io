@@ -1,9 +1,10 @@
-import { config } from '../../config';
+import { config } from '../../config'
+import thinky = require('thinky');
 
-var thinky = require('thinky')({
-    host: config.rethinkdb.host,
-    port: config.rethinkdb.port,
-    db: config.rethinkdb.db
+var thinkyObject = thinky({
+  host: config.rethinkdb.host,
+  port: config.rethinkdb.port,
+  db: config.rethinkdb.db
 })
 
-export { thinky };
+export { thinkyObject }

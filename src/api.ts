@@ -2,9 +2,15 @@ import socketio from 'socket.io'
 
 let io
 
-var startSocketIOServer = (server) => {
+var startSocketIOServer = (server): void => {
   io = socketio(server)
-  console.log('Listening on port ')
+  var address = io.handshake.address
+  console.log(
+    'New connection from ' +
+      String(address.address) +
+      ':' +
+      String(address.port)
+  )
 }
 
 export { startSocketIOServer }

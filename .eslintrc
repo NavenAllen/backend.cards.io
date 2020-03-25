@@ -7,15 +7,29 @@
     "parserOptions": {
         "project": "./tsconfig.json"
     },
+    "plugins": [
+        "prefer-arrow"
+    ],
     "rules": {
         "node/exports-style": ["error", "module.exports"],
-        "node/file-extension-in-import": ["error", "always"],
+        "node/file-extension-in-import": ["error", "never"],
+        "node/no-missing-import": "off",
         "node/prefer-global/buffer": ["error", "always"],
         "node/prefer-global/console": ["error", "always"],
         "node/prefer-global/process": ["error", "always"],
         "node/prefer-global/url-search-params": ["error", "always"],
         "node/prefer-global/url": ["error", "always"],
         "node/prefer-promises/dns": "error",
-        "node/prefer-promises/fs": "error"
+        "node/prefer-promises/fs": "error",
+        "@typescript-eslint/strict-boolean-expressions": ["error", {"allowSafe":true}],
+        //"func-style": ["error", "expression"],
+        "prefer-arrow/prefer-arrow-functions": [
+            "error",
+            {
+              "disallowPrototype": true,
+              "singleReturnOnly": false,
+              "classPropertiesAllowed": false
+            }
+        ],
     }
 }

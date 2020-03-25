@@ -6,8 +6,8 @@
   "main": "literature.js",
   "scripts": {
     "start": "tsc && node ./dist/app.js",
-    "lint:fix": "eslint **/*.ts --fix",
-    "lint": "eslint **/*.ts",
+    "lint:fix": "npx eslint --ext .ts --fix",
+    "lint": "tsc --noEmit && eslint '*/**/*.ts' --quiet --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -44,6 +44,7 @@
   },
   "devDependencies": {
     "@types/node": "^13.9.3",
+    "@types/socket.io": "^2.1.4",
     "@typescript-eslint/eslint-plugin": "^2.25.0",
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.7.0",
@@ -51,6 +52,7 @@
     "eslint-config-standard-with-typescript": "^15.0.1",
     "eslint-plugin-import": "^2.20.1",
     "eslint-plugin-node": "^11.0.0",
+    "eslint-plugin-prefer-arrow": "^1.1.7",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
     "husky": "^4.2.3",
