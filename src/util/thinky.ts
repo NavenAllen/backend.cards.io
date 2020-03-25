@@ -7,4 +7,4 @@ var thinkyObject = thinky({
   db: config.rethinkdb.db
 })
 
-export { thinkyObject }
+export { thinkyObject as thinky }

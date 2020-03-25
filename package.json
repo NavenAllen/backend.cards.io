@@ -2,7 +2,6 @@
   "name": "backend.cards.io",
   "description": "Backend for cards.io",
   "version": "1.0.0",
-  "type": "module",
   "main": "literature.js",
   "scripts": {
     "start": "tsc && node ./dist/app.js",
@@ -51,7 +50,6 @@
     "eslint": "^6.8.0",
     "eslint-config-standard-with-typescript": "^15.0.1",
     "eslint-plugin-import": "^2.20.1",
-    "eslint-plugin-node": "^11.0.0",
     "eslint-plugin-prefer-arrow": "^1.1.7",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
