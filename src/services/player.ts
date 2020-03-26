@@ -32,7 +32,11 @@ var updateHand = async (id: string, hand: string[]) => {
 }
 
 var getById = async (id: string): Promise<Player> => {
-	let p = await PlayerModel.get(id).getJoin({game: true}).run()
+	try {
+		var p = await PlayerModel.get(id).getJoin({game: true}).run()
+	} catch (err) {
+		throw new Error('Player does not exist')
+	}
 	return Player.fromModelObject(p)
 }
 

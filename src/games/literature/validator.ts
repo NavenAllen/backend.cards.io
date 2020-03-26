@@ -1,4 +1,4 @@
-import { Player } from "../../engine";
+import { Player, Game } from "../../engine";
 
 const lowerClubs = ['2C', '3C', '4C', '5C', '6C', '7C']
 const higherClubs = ['9C', '10C', 'JC', 'QC', 'KC', 'AC']
@@ -42,8 +42,12 @@ const canAsk = (player: Player, card: string) => {
 	} else {
 		baseSet = jokers
 	}
-
-	return player.getHand().filter((c: string) => {
+	
+	let intersection = player.getHand().filter((c: string) => {
 		return baseSet.includes(c)
-	}).length > 0
+	})
+	if (intersection.length === 0)
+		throw new Error('No base card')
 }
+
+export { canAsk }

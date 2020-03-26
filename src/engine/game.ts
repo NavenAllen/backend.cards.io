@@ -142,6 +142,12 @@ export class Game {
 		})[0]
 	}
 
+	getPlayerByPosition = (pos: number): Player => {
+		return this._players.filter((p: Player) => {
+			return p.position === pos
+		})[0]
+	}
+
 	findCardWithPlayer = (card: string): number => {
 		for (let i = 0; i < this.players.length; i++) {
 			if (this.players[i].getIndexOf(card) !== -1) return i

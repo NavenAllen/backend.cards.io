@@ -50,7 +50,11 @@ var updatePile = async (id: string, pile: string[]) => {
 }
 
 var getByCode = async (gameCode: string) => {
-	let g = await GameModel.filter(r.row('code').eq(gameCode)).getJoin({players: true, owner: true}).run()
+	try {
+		var g = await GameModel.filter(r.row('code').eq(gameCode)).getJoin({players: true, owner: true}).run()
+	} catch (err) {
+		throw new Error('Game does not exist')
+	}
 	return Game.fromModelObject(g[0])
 }
 
