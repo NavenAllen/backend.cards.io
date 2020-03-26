@@ -4,6 +4,7 @@ import bodyParser from 'body-parser'
 import { assignSocketToApi } from './src/api'
 
 import { config } from './config'
+import { testLit } from './src/games/literature/controller'
 
 const port = process.env.PORT ? process.env.PORT : config.express.port
 const app = express()
@@ -32,3 +33,5 @@ io = socketio(server)
 io.on('connection', (socket) => {
   assignSocketToApi(socket)
 })
+
+testLit()

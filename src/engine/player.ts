@@ -70,25 +70,29 @@ export class Player {
 		this._position = position
 	};
 
+	set score(score: number) {
+		this._score = score
+	}
+
 	set hand(hand: Card[]) {
 		this._hand = hand
 	};
 
-	getIndexOf = (card): number => {
+	getIndexOf = (card: string): number => {
 		for (let i = 0; i < this._hand.length; i++) {
-			if (this._hand[i].value === card.value) {
+			if (this._hand[i].string === card) {
 				return i;
 			}
 		}
 		return -1;
 	};
 
-	discard = (card: Card): void => {
+	discard = (card: string): Card => {
 		const index = this.getIndexOf(card)
 		if (index === -1) {
 			throw PlayerError('Does not have the requested card')
 		} else {
-			this._hand.splice(index, index + 1)
+			return this._hand.splice(index, index + 1)[0]
 		}
 	};
 

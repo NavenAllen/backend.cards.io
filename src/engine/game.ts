@@ -22,7 +22,7 @@ export class Game {
 	decideStarter: (player: Player) => boolean;
 	decideTurn: Function;
 
-	constructor (type: string, deck: Deck, maxPlayers: number, isTeamGame: boolean, players: string[] = []) {
+	constructor (type: string, deck: Deck, maxPlayers: number, isTeamGame: boolean) {
 		this._type = type
 		this._code = this.randomString(10)
 		this._deck = deck
@@ -33,9 +33,10 @@ export class Game {
 		// this.currentRound = [];
 	}
 
-	static async build(type: string, deck: Deck, maxPlayers: number, isTeamGame: boolean, ownerId: string) {
+	static async build(type: string, deck: Deck, maxPlayers: number, isTeamGame: boolean, owner: Player) {
 		var g = new Game(type, deck, maxPlayers, isTeamGame)
-		await GameService.createGame(g, ownerId, g.onGameCreationSuccess, g.onGameCreationFailure)
+		await GameService.createGame(g, owner.id, g.onGameCreationSuccess, g.onGameCreationFailure)
+		g.addPlayer(owner)
 		return g
 	}
 
@@ -75,7 +76,7 @@ export class Game {
 		return this._pile
 	};
 
-	getPileStateString = (): String[] => {
+	getPileAsString = (): String[] => {
 		return this._pile.map((c) => {
 			return c.number + c.suite
 		})
@@ -89,15 +90,26 @@ export class Game {
 		return this._maxPlayers
 	};
 
+	set currentTurn(pos: number) {
+		this.currentTurn = pos
+	}
+
 	addPlayer = (newPlayer: Player): void => {
 		if (this._players.length === this._maxPlayers) {
 			throw GameError('Player limit reached')
 		} else {
 			newPlayer.position = this._players.length;
 			this._players.push(newPlayer)
+			GameService.addPlayerToGame(this._databaseObjectId, newPlayer.id)
 		}
 	};
 
+	findCardWithPlayer = (card: string): number => {
+		for(let i = 0; i < this.players.length; i++) {
+			if(this.players[i].getIndexOf(card) !== -1)
+				return i
+		}
+	}
 	discardToPile = (card): void => {
 		this._pile.push(card)
 	};

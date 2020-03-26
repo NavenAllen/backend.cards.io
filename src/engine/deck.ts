@@ -47,6 +47,10 @@ export class Card {
 		return this._suite
 	};
 
+	get string(): string {
+		return this.number + this.suite
+	}
+
 	get value (): number {
 		return this._value
 	};

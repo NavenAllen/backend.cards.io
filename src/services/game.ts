@@ -14,7 +14,7 @@ var createGame = async (
 		type: game.type,
 		code: game.code,
 		deck: game.deck.getCardsAsString(),
-		pile: game.getPileStateString(),
+		pile: game.getPileAsString(),
 		currentTurn: game.currentTurn,
 		maxPlayers: game.maxPlayers,
 		isTeam: game.ifTeamGame
@@ -22,7 +22,7 @@ var createGame = async (
 
 	await PlayerModel.get(ownerId).run().then((player) => {
 		gameObject.owner = player
-		gameObject.players = [ player ]
+		gameObject.players = []
 	}).error((err) => {
 		console.log(err)
 	})
@@ -36,8 +36,8 @@ var createGame = async (
 	// console.log(gameObject)
 }
 
-var addPlayerToGame = async (gameCode: string, playerId: string) => {
-	let game = await GameModel.get(gameCode).getJoin({players: true}).run()
+var addPlayerToGame = async (gameId: string, playerId: string) => {
+	let game = await GameModel.get(gameId).getJoin({players: true}).run()
 	let player = await PlayerModel.get(playerId).run()
 	game.players.push(player)
 	await game.saveAll({owner: true, players: true})
