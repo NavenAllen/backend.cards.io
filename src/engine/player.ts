@@ -24,8 +24,8 @@ export class Player {
 
 	static async build(name: string) {
 		var p = new Player(name)
-		await PlayerService.createPlayer(p).then((player) => {
-			p.databaseObjectId = player.id
+		await PlayerService.create(p).then((player) => {
+			p._databaseObjectId = player.id
 		})
 		return p
 	}
@@ -50,11 +50,7 @@ export class Player {
 		return this._hand
 	}
 
-	get databaseObjectId(): string {
-		return this._databaseObjectId
-	}
-
-	getHandAsString = (): string[] => {
+	getHand = (): string[] => {
 		return this._hand.map((c) => {
 			return c.number + c.suite
 		})
@@ -62,7 +58,8 @@ export class Player {
 
 	add = (card: Card): void => {
 		this._hand.push(card)
-	}
+		PlayerService.updateHand(this._databaseObjectId, this.getHand())
+	};
 
 	set position(position: number) {
 		this._position = position
@@ -70,13 +67,14 @@ export class Player {
 
 	set score(score: number) {
 		this._score = score
+		PlayerService.updateScore(this._databaseObjectId, this._score)
 	}
 
 	set hand(hand: Card[]) {
 		this._hand = hand
 	}
 
-	set databaseObjectId(objectId: string) {
+	set id(objectId: string) {
 		this._databaseObjectId = objectId
 	}
 
@@ -94,7 +92,9 @@ export class Player {
 		if (index === -1) {
 			throw PlayerError('Does not have the requested card')
 		} else {
-			return this._hand.splice(index, index + 1)[0]
+			let discarded = this._hand.splice(index, index + 1)[0]
+			PlayerService.updateHand(this._databaseObjectId, this.getHand())
+			return discarded
 		}
 	}
 

@@ -7,11 +7,12 @@ let io,
 	litNsp,
 	socketIDMap = {}
 
-router.post('/literature/create', async (req, res) => {
+const baseUrl = '/literature'
+router.post(baseUrl + '/create', async (req, res) => {
 	var game = await startLiteratureGame(req.body.name)
 	res.send({
-		gameId: game.databaseObjectId,
-		playerId: game.owner
+		gameId: game.id,
+		playerId: game.owner.id
 	})
 })
 

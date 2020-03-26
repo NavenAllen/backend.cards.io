@@ -53,6 +53,24 @@ export class Card {
 
 	get value(): number {
 		return this._value
+	};
+
+	static fromString = (c: string): Card => {
+		let suite = c.slice(-1)
+		let number = c.slice(0, -1)
+		if (suite === 'R') {
+			suite = 'JOKER'
+			number = ''
+		}
+		return (new Card(suite, number))
+	}
+
+	static fromStringArray = (c: string[]): Card[] => {
+		let cards = []
+		c.forEach((e: string) => {
+			cards.push(Card.fromString(e))
+		})
+		return cards
 	}
 }
 
@@ -106,11 +124,7 @@ export class Deck {
 		}
 	}
 
-	get cards(): Card[] {
-		return this._cards
-	}
-
-	getCardsAsString = (): string[] => {
+	get cards(): string[] {
 		return this._cards.map((c) => {
 			return c.number + c.suite
 		})
@@ -167,8 +181,8 @@ export class Deck {
 		return this._cards.splice(0, 1)[0]
 	}
 
-	refresh = (discardPile): void => {
-		this._cards = discardPile
+	refresh = (discardPile: string[]): void => {
+		this._cards = Card.fromStringArray(discardPile)
 		this.shuffle()
 	}
 }

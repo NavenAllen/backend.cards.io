@@ -1,11 +1,11 @@
 import { Player } from '../engine'
 import { PlayerModel } from '../models'
 
-var createPlayer = async (player: Player) => {
+var create = async (player: Player) => {
 	var playerObject = new PlayerModel({
 		name: player.name,
 		position: player.position,
-		hand: player.getHandAsString(),
+		hand: player.getHand(),
 		score: player.score
 	})
 
@@ -13,9 +13,21 @@ var createPlayer = async (player: Player) => {
 	return player
 }
 
-var getPlayerById = async (id: string) => {
-	let player = PlayerModel.get(id).getJoin({ game: true }).run()
+var updateScore = async (id: string, score: number) => {
+	let player = await PlayerModel.get(id).run()
+	player.score = score
+	player.save()
+}
+
+var updateHand = async (id: string, hand: string[]) => {
+	let player = await PlayerModel.get(id).run()
+	player.hand = hand
+	player.save()
+}
+
+var getById = async (id: string) => {
+	let player = await PlayerModel.get(id).getJoin({game: true}).run()
 	return player
 }
 
-export { createPlayer, getPlayerById }
+export { create , getById, updateHand , updateScore }

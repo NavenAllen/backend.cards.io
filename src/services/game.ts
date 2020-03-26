@@ -4,17 +4,18 @@ import { thinky } from '../util/thinky'
 
 const r = thinky.r
 
-var createGame = async (game: Game, owner: Player) => {
+var create = async (game: Game, owner: Player) => {
 	var gameObject = new GameModel({
 		type: game.type,
 		code: game.code,
-		deck: game.deck.getCardsAsString(),
-		pile: game.getPileAsString(),
+		deck: game.deck.cards,
+		pile: game.pile,
 		currentTurn: game.currentTurn,
+		minPlayers: game.minPlayers,
 		maxPlayers: game.maxPlayers,
 		isTeam: game.ifTeamGame
 	})
-	var player = await PlayerModel.get(owner.databaseObjectId).run()
+	var player = await PlayerModel.get(owner.id).run()
 
 	gameObject.owner = player
 	gameObject.players = [player]
@@ -23,18 +24,34 @@ var createGame = async (game: Game, owner: Player) => {
 	return gameData
 }
 
-var addPlayerToGame = async (gameId: string, playerId: string) => {
-	var game = await GameModel.get(gameId).getJoin({ players: true }).run()
-	var player = await PlayerModel.get(playerId).run()
-
+var addPlayer = async (gameId: string, playerId: string) => {
+	let game = await GameModel.get(gameId).getJoin({players: true}).run()
+	let player = await PlayerModel.get(playerId).run()
 	game.players.push(player)
 	await game.saveAll({ owner: true, players: true })
 }
 
-var getGameByCode = (gameCode: string) => {
-	return GameModel.filter(r.row('code').eq(gameCode))
-		.getJoin({ players: true })
-		.run()
+var updateDeck = async (id: string, deck: string[]) => {
+	let game = await PlayerModel.get(id).run()
+	game.deck = deck
+	game.save()
 }
 
-export { createGame, addPlayerToGame, getGameByCode }
+var updateTurn = async (id: string, turn: number) => {
+	let game = await PlayerModel.get(id).run()
+	game.currentTurn = turn
+	game.save()
+}
+
+var updatePile = async (id: string, pile: string[]) => {
+	let game = await PlayerModel.get(id).run()
+	game.pile = pile
+	game.save()
+}
+
+var getGameByCode = async (gameCode: string) => {
+	let game = await GameModel.filter(r.row('code').eq(gameCode)).getJoin({players: true}).run()
+	return game
+}
+
+export { create, addPlayer, getGameByCode, updateDeck, updateTurn, updatePile }

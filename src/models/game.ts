@@ -10,6 +10,7 @@ var Game = thinky.createModel('game', {
 	deck: [type.string()],
 	pile: [type.string()],
 	currentTurn: type.number(),
+	minPlayers: type.number(),
 	maxPlayers: type.number(),
 	isTeam: type.boolean(),
 	createdAt: type.date().default(thinky.r.now())

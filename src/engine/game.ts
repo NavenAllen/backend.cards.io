@@ -9,54 +9,38 @@ var GameError = (message): Error => {
 GameError.prototype = Object.create(Error.prototype)
 
 export class Game {
-	private _type: string
-	private _code: string
-	private _deck: Deck
-	private _owner: Player
-	private _maxPlayers: number
-	private _isTeamGame: boolean
-	private _players: Player[]
-	private _pile: Card[]
-	private _currentTurn: number
-	private _databaseObjectId: string
-	processRound: Function
-	decideStarter: (player: Player) => boolean
-	decideTurn: Function
+	private _type: string;
+	private _code: string;
+	private _deck: Deck;
+	private _owner: Player;
+	private _minPlayers: number;
+	private _maxPlayers: number;
+	private _isTeamGame: boolean;
+	private _players: Player[];
+	private _pile: Card[];
+	private _currentTurn: number;
+	private _databaseObjectId: string;
 
-	constructor(
-		type: string,
-		deck: Deck,
-		maxPlayers: number,
-		isTeamGame: boolean,
-		players: string[] = []
-	) {
+	constructor (type: string, deck: Deck, minPlayers: number, maxPlayers: number, isTeamGame: boolean) {
 		this._type = type
 		this._code = this.randomString(10)
 		this._deck = deck
+		this._minPlayers = minPlayers
 		this._maxPlayers = maxPlayers
 		this._isTeamGame = isTeamGame
 		this._players = []
 		this._pile = []
-		// this.currentRound = [];
 	}
 
-	static async build(
-		type: string,
-		deck: Deck,
-		maxPlayers: number,
-		isTeamGame: boolean,
-		owner: Player
-	) {
-		var g = new Game(type, deck, maxPlayers, isTeamGame)
-		await GameService.createGame(g, owner)
-			.then((game) => {
-				g.databaseObjectId = game.id
-				g.owner = owner
-				g.addPlayer(owner)
-			})
-			.catch((error) => {
-				throw GameError(error.message)
-			})
+	static async build(type: string, deck: Deck, minPlayers: number, maxPlayers: number, isTeamGame: boolean, owner: Player) {
+		var g = new Game(type, deck, minPlayers, maxPlayers, isTeamGame)
+		await GameService.create(g, owner).then((game) => {
+			g._databaseObjectId = game.id
+			g._owner = owner
+			g.addPlayer(owner)
+		}).catch((error) => {
+			throw GameError(error.message)
+		})
 		return g
 	}
 
@@ -84,15 +68,7 @@ export class Game {
 		return this._players
 	}
 
-	get pile(): Card[] {
-		return this._pile
-	}
-
-	get owner(): Player {
-		return this._owner
-	}
-
-	getPileAsString = (): String[] => {
+	get pile(): string[] {
 		return this._pile.map((c) => {
 			return c.number + c.suite
 		})
@@ -106,11 +82,16 @@ export class Game {
 		return this._maxPlayers
 	}
 
+	get minPlayers(): number {
+		return this._minPlayers
+	};
+
 	set currentTurn(pos: number) {
-		this.currentTurn = pos
+		this._currentTurn = pos
+		GameService.updateTurn(this._databaseObjectId, this._currentTurn)
 	}
 
-	set databaseObjectId(objectId: string) {
+	set id(objectId: string) {
 		this._databaseObjectId = objectId
 	}
 
@@ -123,10 +104,7 @@ export class Game {
 			throw GameError('Player limit reached')
 		} else {
 			this._players.push(newPlayer)
-			await GameService.addPlayerToGame(
-				this._databaseObjectId,
-				newPlayer.databaseObjectId
-			)
+			GameService.addPlayer(this._databaseObjectId, newPlayer.id)
 		}
 	}
 
@@ -135,54 +113,28 @@ export class Game {
 			if (this.players[i].getIndexOf(card) !== -1) return i
 		}
 	}
+
 	discardToPile = (card): void => {
 		this._pile.push(card)
-	}
-
-	setRoundProcessor = (processor): void => {
-		// processor should clear pile after every round
-		this.processRound = processor.bind(this)
-	}
-
-	setStartingDecision = (decision): void => {
-		if (decision === undefined) {
-			const env = {
-				random: Math.floor((Math.random() * 10) % this._players.length)
-			}
-			this.decideStarter = function (player) {
-				return player.position === this.random
-			}
-			this.decideStarter = this.decideStarter.bind(env)
-		} else {
-			this.decideStarter = decision.bind(this)
-		}
-	}
-
-	makeStartingDecision = (): void => {
-		for (let i = 0; i < this._players.length; i++) {
-			if (this.decideStarter(this._players[i])) {
-				this._currentTurn = i
-				break
-			}
-		}
-	}
-
-	setTurnDecision = (decision): void => {
-		this.decideTurn = decision.bind(this)
-	}
+		GameService.updatePile(this._databaseObjectId, this.pile)
+	};
 
 	prepareGame = (cardCount = 0): void => {
-		if (this._isTeamGame && this._players.length % 2 !== 0) {
+		if (this._isTeamGame && this._players.length % 2 !== 0)
 			throw GameError('Not enough players')
-		}
+
+		if (this._players.length < this._minPlayers)
+			throw GameError('Not enough players')
 
 		this._deck
 			.deal(this._players.length, cardCount)
 			.forEach((hand, index) => {
 				this._players[index].hand = hand
-				console.log(this._players[index].getHandAsString())
+				console.log(this._players[index].getHand())
 			})
-	}
+
+		GameService.updateDeck(this._databaseObjectId, this._deck.cards)
+	};
 
 	randomString = (len): string => {
 		var charSet =
