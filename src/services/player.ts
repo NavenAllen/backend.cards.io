@@ -13,6 +13,12 @@ var create = async (player: Player) => {
 	return player
 }
 
+var updateName = async (id: string, name: string) => {
+	let player = await PlayerModel.get(id).run()
+	player.name = name
+	player.save()
+}
+
 var updateScore = async (id: string, score: number) => {
 	let player = await PlayerModel.get(id).run()
 	player.score = score
@@ -25,9 +31,9 @@ var updateHand = async (id: string, hand: string[]) => {
 	player.save()
 }
 
-var getById = async (id: string) => {
-	let player = await PlayerModel.get(id).getJoin({game: true}).run()
-	return player
+var getById = async (id: string): Promise<Player> => {
+	let p = await PlayerModel.get(id).getJoin({game: true}).run()
+	return Player.fromModelObject(p)
 }
 
-export { create , getById, updateHand , updateScore }
+export { create , getById, updateName, updateHand , updateScore }

@@ -32,7 +32,7 @@ export class Game {
 		this._pile = []
 	}
 
-	static async build(type: string, deck: Deck, minPlayers: number, maxPlayers: number, isTeamGame: boolean, owner: Player) {
+	static build = async (type: string, deck: Deck, minPlayers: number, maxPlayers: number, isTeamGame: boolean, owner: Player) => {
 		var g = new Game(type, deck, minPlayers, maxPlayers, isTeamGame)
 		await GameService.create(g, owner).then((game) => {
 			g._databaseObjectId = game.id
@@ -41,6 +41,22 @@ export class Game {
 		}).catch((error) => {
 			throw GameError(error.message)
 		})
+		return g
+	}
+
+	static fromModelObject = (obj: any) => {
+		let d = new Deck()
+		d.cards = obj.deck
+		let g = new Game(obj.type, d, obj.minPlayers, obj.maxPlayers, obj.isTeam)
+		g.id = obj.id
+		g.code = obj.code
+		g.currentTurn = obj.currentTurn
+		g.pile = obj.pile
+
+		obj.players.forEach(p => {
+			g.players.push(Player.fromModelObject(p))
+		});
+		g.owner = Player.fromModelObject(obj.owner)
 		return g
 	}
 
@@ -78,6 +94,10 @@ export class Game {
 		return this._currentTurn
 	}
 
+	get owner(): Player {
+		return this._owner
+	}
+
 	get maxPlayers(): number {
 		return this._maxPlayers
 	}
@@ -95,6 +115,14 @@ export class Game {
 		this._databaseObjectId = objectId
 	}
 
+	set code(c: string) {
+		this._code = c
+	}
+
+	set pile(cards: string[]) {
+		this._pile = Card.fromStringArray(cards)
+	}
+
 	set owner(owner: Player) {
 		this._owner = owner
 	}
@@ -104,8 +132,14 @@ export class Game {
 			throw GameError('Player limit reached')
 		} else {
 			this._players.push(newPlayer)
-			GameService.addPlayer(this._databaseObjectId, newPlayer.id)
+			await GameService.addPlayer(this._databaseObjectId, newPlayer.id)
 		}
+	}
+
+	getPlayerById = (id: string): Player => {
+		return this._players.filter((p: Player) => {
+			return p.id === id
+		})[0]
 	}
 
 	findCardWithPlayer = (card: string): number => {

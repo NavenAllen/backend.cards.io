@@ -130,6 +130,10 @@ export class Deck {
 		})
 	}
 
+	set cards(c: string[]) {
+		this._cards = Card.fromStringArray(c)
+	}
+
 	shuffle = (n = 5): void => {
 		while (n > 0) {
 			let currentIndex = this._cards.length

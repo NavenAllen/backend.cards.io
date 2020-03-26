@@ -15,11 +15,11 @@ export class Player {
 	private _score: number
 	private _databaseObjectId: string
 
-	constructor(playerName: string) {
-		this._name = playerName
-		this._hand = []
-		this._position = -1
-		this._score = 0
+	constructor(name: string, hand: Card[] = [], position: number = -1, score: number = 0) {
+		this._name = name
+		this._hand = hand
+		this._position = position
+		this._score = score
 	}
 
 	static async build(name: string) {
@@ -27,6 +27,12 @@ export class Player {
 		await PlayerService.create(p).then((player) => {
 			p._databaseObjectId = player.id
 		})
+		return p
+	}
+
+	static fromModelObject = (obj: any): Player => {
+		let p = new Player(obj.name, Card.fromStringArray(obj.hand), obj.position, obj.score)
+		p.id = obj.id
 		return p
 	}
 
@@ -63,6 +69,11 @@ export class Player {
 
 	set position(position: number) {
 		this._position = position
+	}
+
+	set name(name: string) {
+		this._name = name
+		PlayerService.updateName(this._databaseObjectId, this._name)
 	}
 
 	set score(score: number) {
