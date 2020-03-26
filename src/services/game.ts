@@ -36,16 +36,17 @@ var createGame = async (
 	// console.log(gameObject)
 }
 
-var addPlayerToGame = async (gameCode: string, playerId: string) => {
-	let game = await GameModel.get(gameCode).getJoin({players: true}).run()
-	let player = await PlayerModel.get(playerId).run()
-	game.players.push(player)
-	await game.saveAll({owner: true, players: true})
+var addPlayerToGame = (gameCode: string, playerId: string) => {
+	return GameModel.get(gameCode).getJoin({players: true}).run().then( game => {
+		PlayerModel.get(playerId).run().then( player => {
+			game.players.push(player)
+			game.saveAll({owner: true, players: true})
+		})
+	})
 }
 
-var getGameByCode = async (gameCode: string) => {
-	let game = await GameModel.filter(r.row('code').eq(gameCode)).getJoin({players: true}).run()
-	return game
+var getGameByCode = (gameCode: string) => {
+	return GameModel.filter(r.row('code').eq(gameCode)).getJoin({players: true}).run();
 }
 
 export { createGame, addPlayerToGame, getGameByCode }

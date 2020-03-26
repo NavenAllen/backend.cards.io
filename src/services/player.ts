@@ -21,8 +21,7 @@ var createPlayer = async (
 }
 
 var getPlayerById = async (id: string) => {
-	let player = await PlayerModel.get(id).getJoin({game: true}).run()
-	return player
+	return PlayerModel.get(id).getJoin({game: true}).run();
 }
 
 export { createPlayer, getPlayerById }

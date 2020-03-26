@@ -5,6 +5,8 @@ import { assignSocketToApi } from './src/api'
 
 import { config } from './config'
 
+import { testLit } from './src/games/literature/controller'
+
 const port = process.env.PORT ? process.env.PORT : config.express.port
 const app = express()
 var io
@@ -25,6 +27,8 @@ app.use((err, req, res, next) => {
   res.status(500).send(`Error: ${String(err)}`)
   next()
 })
+
+testLit();
 
 const server = app.listen(port)
 io = socketio(server)

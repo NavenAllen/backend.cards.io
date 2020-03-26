@@ -4,18 +4,25 @@ import { GameService, PlayerService } from '../../services'
 var testLit = async () => {
 	var deck = new Deck()
 
-	var p1 = await Player.build('five')
-	var p2 = await Player.build('six')
-	console.log(p2)
+	var numbers = ['five', 'six']
+	const promises = numbers.map(number => Player.build('five'));
 
-	let c = await PlayerService.getPlayerById(p2.id)
-	console.log(c)
+  	const results = await Promise.all(promises);
+	console.log(results);
+	let p1 = results[0]
+	let p2 = results[1]
 
-	var game = await Game.build('Literature', deck, 8, true, p1.id)
-	await GameService.addPlayerToGame(game.id, p2.id)
+	PlayerService.getPlayerById(p2.id).then( player => {
+		console.log(player)
+	})
 
-	c = await GameService.getGameByCode(game.code)
-	console.log(c)
+	Game.build('Literature', deck, 8, true, p1.id).then( game => {
+		GameService.addPlayerToGame(game.id, p2.id)
+
+		GameService.getGameByCode(game.code).then( game => {
+			console.log(game)
+		})
+	})
 }
 
 var registerPlayer = async(name: string) => {
@@ -35,10 +42,11 @@ var hostGame = async(type: string, owner: string) => {
 var joinGame = async(code: string, player: string) => {
 	await GameService.addPlayerToGame(code, player)
 }
-
+ 
 var startGame = async(code: string, player: string) => {
-	let g = await GameService.getGameByCode(code)
-	let game = new Game(g.type, g.deck, g.maxPlayers, g.isTeamGame)
+	GameService.getGameByCode(code).then( g => {
+		let game = new Game(g.type, g.deck, g.maxPlayers, g.isTeamGame)
+	})
 }
 
 export { testLit }
