@@ -12,6 +12,7 @@ export class Game {
 	private _type: string
 	private _code: string
 	private _deck: Deck
+	private _owner: Player
 	private _maxPlayers: number
 	private _isTeamGame: boolean
 	private _players: Player[]
@@ -50,6 +51,7 @@ export class Game {
 		await GameService.createGame(g, owner)
 			.then((game) => {
 				g.databaseObjectId = game.id
+				g.owner = owner
 				g.addPlayer(owner)
 			})
 			.catch((error) => {
@@ -86,6 +88,10 @@ export class Game {
 		return this._pile
 	}
 
+	get owner(): Player {
+		return this._owner
+	}
+
 	getPileAsString = (): String[] => {
 		return this._pile.map((c) => {
 			return c.number + c.suite
@@ -106,6 +112,10 @@ export class Game {
 
 	set databaseObjectId(objectId: string) {
 		this._databaseObjectId = objectId
+	}
+
+	set owner(owner: Player) {
+		this._owner = owner
 	}
 
 	addPlayer = async (newPlayer: Player) => {

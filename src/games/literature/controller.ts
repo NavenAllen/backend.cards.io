@@ -78,4 +78,4 @@ var declareSet = async (
 		console.log(player.name + ' incorrectly declared the ' + '')
 	}
 }
-export { testLit }
+export { hostGame, joinGame, startGame, askForCard }
