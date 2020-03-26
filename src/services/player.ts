@@ -1,11 +1,7 @@
 import { Player } from '../engine'
 import { PlayerModel } from '../models'
 
-var createPlayer = async (
-	player: Player,
-	onPlayerCreationSuccess: Function,
-	onPlayerCreationFailure: Function
-) => {
+var createPlayer = async (player: Player) => {
 	var playerObject = new PlayerModel({
 		name: player.name,
 		position: player.position,
@@ -13,15 +9,12 @@ var createPlayer = async (
 		score: player.score
 	})
 
-	await playerObject.saveAll().then((result) => {
-		onPlayerCreationSuccess(result)
-	}).error((err) => {
-		onPlayerCreationFailure(err)
-	})
+	var player = await playerObject.saveAll()
+	return player
 }
 
 var getPlayerById = async (id: string) => {
-	let player = await PlayerModel.get(id).getJoin({game: true}).run()
+	let player = PlayerModel.get(id).getJoin({ game: true }).run()
 	return player
 }
 

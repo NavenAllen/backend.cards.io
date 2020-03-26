@@ -6,12 +6,12 @@ var DeckError = (message: string): Error => {
 DeckError.prototype = Object.create(Error.prototype)
 
 export class Card {
-	private _number: string;
-	private _suite: string;
-	private _value: number;
-	private _dataObjectId: string;
+	private _number: string
+	private _suite: string
+	private _value: number
+	private _dataObjectId: string
 
-	constructor (number: string, suite: string) {
+	constructor(number: string, suite: string) {
 		this._number = number
 		this._suite = suite
 
@@ -41,25 +41,29 @@ export class Card {
 
 	get number(): string {
 		return this._number
-	};
+	}
 
 	get suite(): string {
 		return this._suite
-	};
+	}
 
 	get string(): string {
 		return this.number + this.suite
 	}
 
-	get value (): number {
+	get value(): number {
 		return this._value
-	};
+	}
 }
 
 export class Deck {
-	private _cards: Card[];
+	private _cards: Card[]
 
-	constructor (excludeJokers = false, deckCount = 1, exclusions: string[] = []) {
+	constructor(
+		excludeJokers = false,
+		deckCount = 1,
+		exclusions: string[] = []
+	) {
 		exclusions.filter((e) => {
 			if (!e.match(/([2-9]|10|[JQKA])[SCDH]/)) {
 				throw DeckError('Invalid Card => ' + e)
@@ -67,7 +71,21 @@ export class Deck {
 		})
 
 		this._cards = []
-		const numbers = [ 'A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K' ]
+		const numbers = [
+			'A',
+			'2',
+			'3',
+			'4',
+			'5',
+			'6',
+			'7',
+			'8',
+			'9',
+			'10',
+			'J',
+			'Q',
+			'K'
+		]
 		const suites = ['C', 'D', 'S', 'H']
 
 		while (deckCount > 0) {
@@ -90,13 +108,13 @@ export class Deck {
 
 	get cards(): Card[] {
 		return this._cards
-	};
+	}
 
 	getCardsAsString = (): string[] => {
 		return this._cards.map((c) => {
 			return c.number + c.suite
 		})
-	};
+	}
 
 	shuffle = (n = 5): void => {
 		while (n > 0) {
@@ -115,7 +133,7 @@ export class Deck {
 			}
 			n--
 		}
-	};
+	}
 
 	deal = (playerCount, cardCount = 0): Card[][] => {
 		let enablePile = true
@@ -143,14 +161,14 @@ export class Deck {
 		}
 
 		return result
-	};
+	}
 
 	draw = (): Card => {
 		return this._cards.splice(0, 1)[0]
-	};
+	}
 
 	refresh = (discardPile): void => {
 		this._cards = discardPile
 		this.shuffle()
-	};
+	}
 }

@@ -1,15 +1,10 @@
-import { Game } from '../engine'
+import { Game, Player } from '../engine'
 import { GameModel, PlayerModel } from '../models'
 import { thinky } from '../util/thinky'
 
 const r = thinky.r
 
-var createGame = async (
-	game: Game,
-	ownerId: string,
-	onGameCreationSuccess: Function,
-	onGameCreationFailure: Function
-) => {
+var createGame = async (game: Game, owner: Player) => {
 	var gameObject = new GameModel({
 		type: game.type,
 		code: game.code,
@@ -19,33 +14,27 @@ var createGame = async (
 		maxPlayers: game.maxPlayers,
 		isTeam: game.ifTeamGame
 	})
+	var player = await PlayerModel.get(owner.databaseObjectId).run()
 
-	await PlayerModel.get(ownerId).run().then((player) => {
-		gameObject.owner = player
-		gameObject.players = []
-	}).error((err) => {
-		console.log(err)
-	})
+	gameObject.owner = player
+	gameObject.players = [player]
+	var gameData = await gameObject.saveAll({ owner: true, players: true })
 
-	await gameObject.saveAll({owner: true, players: true}).then((result) => {
-		onGameCreationSuccess(result)
-	}).error((err) => {
-		onGameCreationFailure(err)
-	})
-
-	// console.log(gameObject)
+	return gameData
 }
 
 var addPlayerToGame = async (gameId: string, playerId: string) => {
-	let game = await GameModel.get(gameId).getJoin({players: true}).run()
-	let player = await PlayerModel.get(playerId).run()
+	var game = await GameModel.get(gameId).getJoin({ players: true }).run()
+	var player = await PlayerModel.get(playerId).run()
+
 	game.players.push(player)
-	await game.saveAll({owner: true, players: true})
+	await game.saveAll({ owner: true, players: true })
 }
 
-var getGameByCode = async (gameCode: string) => {
-	let game = await GameModel.filter(r.row('code').eq(gameCode)).getJoin({players: true}).run()
-	return game
+var getGameByCode = (gameCode: string) => {
+	return GameModel.filter(r.row('code').eq(gameCode))
+		.getJoin({ players: true })
+		.run()
 }
 
 export { createGame, addPlayerToGame, getGameByCode }
