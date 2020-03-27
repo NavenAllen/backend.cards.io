@@ -105,6 +105,9 @@ export class Game {
 	get minPlayers(): number {
 		return this._minPlayers
 	};
+	get databaseObjectId(): string {
+		return this._databaseObjectId
+	}
 
 	set currentTurn(pos: number) {
 		this._currentTurn = pos
@@ -138,7 +141,7 @@ export class Game {
 
 	getPlayerById = (id: string): Player => {
 		return this._players.filter((p: Player) => {
-			return p.id === id
+			return p.databaseObjectId === id
 		})[0]
 	}
 

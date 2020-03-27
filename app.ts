@@ -1,6 +1,7 @@
 import socketio from 'socket.io'
 import express from 'express'
 import async from 'async'
+import http from 'http'
 import bodyParser from 'body-parser'
 import {
 	setupLiteratureGame,
@@ -11,7 +12,7 @@ import { config } from './config'
 
 const port = process.env.PORT ? process.env.PORT : config.express.port
 const app = express()
-var io
+var io, server
 
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
@@ -31,16 +32,18 @@ app.use((err, req, res, next) => {
 })
 
 app.use(LiteratureRouter)
+server = http.createServer(app)
 
 async.waterfall(
 	[
-		async () => {
-			const server = app.listen(port)
-			io = await socketio(server)
+		async (callback) => {
+			io = await socketio.listen(server)
+			callback()
 		},
 		async () => {
 			var litNsp = await io.of('/literature')
 			setupLiteratureGame(io, litNsp)
+			server.listen(port)
 		}
 	],
 	function (err) {

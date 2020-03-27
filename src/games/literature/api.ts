@@ -7,13 +7,14 @@ import { Game } from '../../engine'
 let router = express.Router()
 let io,
 	litNsp,
+	gameData = {},
 	socketIDMap = {}
 
 const baseUrl = '/literature'
 router.post(baseUrl + '/create', async (req, res) => {
 	let player = await LiteratureController.registerPlayer(req.body.pid, req.body.name, req.body.pos)
 	let game = await LiteratureController.hostGame(player)
-	setGameData(game)
+	setGameData(game.code, game)
 	res.send({
 		gameCode: game.code,
 		playerId: player.id
@@ -22,11 +23,11 @@ router.post(baseUrl + '/create', async (req, res) => {
 
 router.post(baseUrl + '/join', async (req, res) => {
 	try {
-		let game = await LiteratureController.getGame(req.body.code)
-
+		let game = getGameData(req.body.gameCode)
 		let player = await LiteratureController.registerPlayer(req.body.pid, req.body.name, req.body.pos)
+		
 		await LiteratureController.joinGame(game, player)
-		setGameData(game)
+		setGameData(game.code, game)
 		res.send({
 			playerId: player.id
 		})
@@ -45,7 +46,7 @@ router.post(baseUrl + '/start', async (req, res) => {
 		Validator.isOwner(game, player)
 		LiteratureController.startGame(game)
 
-		setGameData(game)
+		setGameData(game.code, game)
 		res.send({
 			playerId: player.id
 		})
@@ -113,25 +114,32 @@ router.post(baseUrl + '/play/declare', async (req, res) => {
 	}
 })
 
-var setupLiteratureGame = (io, litNspObject) => {
+var setupLiteratureGame = (ioObject, litNspObject) => {
+	io = ioObject
 	litNsp = litNspObject
-	console.log('hello')
+	openSocketChannels()
 }
 
 var getGameData = (gameCode: string): Game => {
-	return io.sockets.adapter.rooms[gameCode].game
+	return gameData[gameCode]
 }
 
-var setGameData = (game: Game) => {
-	io.sockets.adapter.rooms[game.code].game = game
+var setGameData = (gameCode: string, game: Game) => {
+	gameData[gameCode] = game
 }
 
-var openSocketChannels = (gameId: string): void => {
+var openSocketChannels = (): void => {
 	litNsp.on('connection', (socket) => {
-		socket.on('connect', (id, data) => {
-			socket.join(data.gameId)
-			socketIDMap[data.playerId] = id
-			io.to(gameId).emit(data.playerName + 'has joined the game')
+		socket.on('connectGame', (data) => {
+			var playerId = data.playerId
+			var gameCode = data.gameCode
+			var player = getGameData(gameCode).getPlayerById(playerId)
+
+			socket.join(gameCode)
+			socketIDMap[socket.id] = playerId
+			litNsp
+				.to(gameCode)
+				.emit('gameUpdates', player.name + ' has joined the game')
 		})
 
 		socket.on('ask', (data) => {

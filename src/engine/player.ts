@@ -56,6 +56,10 @@ export class Player {
 		return this._hand
 	}
 
+	get databaseObjectId(): string{
+		return this._databaseObjectId
+	}
+
 	getHand = (): string[] => {
 		return this._hand.map((c) => {
 			return c.number + c.suite
