@@ -50,4 +50,10 @@ const canAsk = (player: Player, card: string) => {
 		throw new Error('No base card')
 }
 
-export { canAsk }
+const didJustDeclare = (game: Game) => {
+	let lastLog = game.logs.slice(-1)[0]
+	if (!lastLog.startsWith('DECLARE') && !lastLog.startsWith('TRANSFER'))
+		throw new Error('You can only transfer turn after declaring')
+}
+
+export { canAsk, didJustDeclare }

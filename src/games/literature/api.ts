@@ -18,8 +18,8 @@ var getGameData = (gameCode: string): Game => {
 	return gameData[gameCode]
 }
 
-var setGameData = (gameCode: string, game: Game) => {
-	gameData[gameCode] = game
+var setGameData = (game: Game) => {
+	gameData[game.code] = game
 }
 
 var openSocketChannels = (): void => {
@@ -39,7 +39,7 @@ var openSocketChannels = (): void => {
 				let game = await LiteratureController.hostGame(player)
 				gameCode = game.code
 
-				setGameData(game.code, game)
+				setGameData(game)
 				socket.join(game.code)
 				socketIDMap[socket.id] = playerId
 
@@ -66,7 +66,7 @@ var openSocketChannels = (): void => {
 				)
 				await LiteratureController.joinGame(game, player)
 
-				setGameData(game.code, game)
+				setGameData(game)
 				socket.join(game.code)
 				socketIDMap[socket.id] = playerId
 
@@ -89,7 +89,7 @@ var openSocketChannels = (): void => {
 				Validator.isOwner(game, player)
 				LiteratureController.startGame(game)
 
-				setGameData(game.code, game)
+				setGameData(game)
 				litNsp.to(gameCode).emit('gameUpdates', 'Started game')
 			} catch (err) {
 				litNsp.to(gameCode).emit('gameUpdates', err.message)
@@ -160,7 +160,8 @@ var openSocketChannels = (): void => {
 				let to = game.getPlayerByPosition(toPos)
 
 				Validator.areSameTeam(from, to)
-				LiteratureController.transferTurn(game, to)
+				LiteratureValidator.didJustDeclare(game)
+				LiteratureController.transferTurn(game, from, to)
 				litNsp.to(gameCode).emit('play-transfer', 'Transferred turn')
 			} catch (err) {
 				litNsp.to(gameCode).emit('play-transfer', err.message)

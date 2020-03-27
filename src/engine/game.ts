@@ -20,6 +20,7 @@ export class Game {
 	private _pile: Card[];
 	private _currentTurn: number;
 	private _databaseObjectId: string;
+	private _logs: string[];
 
 	constructor (type: string, deck: Deck, minPlayers: number, maxPlayers: number, isTeamGame: boolean) {
 		this._type = type
@@ -30,6 +31,7 @@ export class Game {
 		this._isTeamGame = isTeamGame
 		this._players = []
 		this._pile = []
+		this._logs = []
 	}
 
 	static build = async (type: string, deck: Deck, minPlayers: number, maxPlayers: number, isTeamGame: boolean, owner: Player) => {
@@ -52,6 +54,7 @@ export class Game {
 		g.code = obj.code
 		g.currentTurn = obj.currentTurn
 		g.pile = obj.pile
+		g.logs = obj.logs
 
 		obj.players.forEach(p => {
 			g.players.push(Player.fromModelObject(p))
@@ -105,8 +108,9 @@ export class Game {
 	get minPlayers(): number {
 		return this._minPlayers
 	};
-	get databaseObjectId(): string {
-		return this._databaseObjectId
+
+	get logs(): string[] {
+		return this._logs
 	}
 
 	set currentTurn(pos: number) {
@@ -130,6 +134,15 @@ export class Game {
 		this._owner = owner
 	}
 
+	set logs(logs: string[]) {
+		this._logs = logs
+	}
+
+	log = async (entry: string) => {
+		this._logs.push(entry)
+		GameService.updateLogs(this._databaseObjectId, this._logs)
+	}
+
 	addPlayer = async (newPlayer: Player) => {
 		if (this._players.length === this._maxPlayers) {
 			throw GameError('Player limit reached')
@@ -141,7 +154,7 @@ export class Game {
 
 	getPlayerById = (id: string): Player => {
 		return this._players.filter((p: Player) => {
-			return p.databaseObjectId === id
+			return p.id === id
 		})[0]
 	}
 

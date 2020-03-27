@@ -38,29 +38,35 @@ var hostGame = async (owner: Player) => {
 	const isTeamGame = true
 
 	let g = await Game.build(gameType, deck, minPlayers, maxPlayers, isTeamGame, owner)
+	g.log('CREATE:' + owner.name)
 	return g
 }
 
 var joinGame = async (game: Game, player: Player) => {
 	await game.addPlayer(player)
+	game.log('JOIN:' + player.name)
 }
 
 var startGame = async (game: Game) => {
 	game.prepareGame()
+	game.log('START')
 }
 
 var askForCard = async(game: Game, from: Player, to: Player, card: string) => {
 	try {
 		from.add(to.discard(card))
+		game.log('TAKE:' + from.name + ':' + to.name + ':' + card)
 		console.log(from.name + ' took ' + card + ' from ' + to.name)
 	} catch (err) {
+		game.log('ASK:' + from.name + ':' + to.name + ':' + card)
 		console.log(from.name + ' asked ' + to.name + ' for ' + card)
 		game.currentTurn = to.position
 	}
 }
 
-var transferTurn = async (game: Game, to: Player) => {
+var transferTurn = async (game: Game, from: Player, to: Player) => {
 	game.currentTurn = to.position
+	game.log('TRANSFER:' + from.name + ':' + to.name)
 	console.log('Turn transferred to ' + to.name)
 }
 
@@ -84,10 +90,14 @@ var declareSet = async (
 	}
 	if (successfull) {
 		player.score += 1
-		console.log(player.name + ' correctly declared the ' + '')
+		game.log('DECLARE:' + player.name + ':' + 'SET')
+		console.log(player.name + ' correctly declared the ' + 'SET')
 	} else {
-		game.players[(player.position + 1) % game.players.length].score += 1
-		console.log(player.name + ' incorrectly declared the ' + '')
+		let opponent = (player.position + 1) % game.players.length
+		game.players[opponent].score += 1
+		game.currentTurn = opponent
+		game.log('DECLARE:' + game.players[opponent].name + ':' + 'SET')
+		console.log(player.name + ' incorrectly declared the ' + 'SET')
 	}
 }
 export { getGame, registerPlayer, hostGame, joinGame, startGame, askForCard, transferTurn, declareSet }

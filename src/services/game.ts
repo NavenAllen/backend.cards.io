@@ -49,6 +49,12 @@ var updatePile = async (id: string, pile: string[]) => {
 	game.save()
 }
 
+var updateLogs = async (id: string, logs: string[]) => {
+	let game = await PlayerModel.get(id).run()
+	game.logs = logs
+	game.save()
+}
+
 var getByCode = async (gameCode: string) => {
 	try {
 		var g = await GameModel.filter(r.row('code').eq(gameCode)).getJoin({players: true, owner: true}).run()
@@ -58,4 +64,4 @@ var getByCode = async (gameCode: string) => {
 	return Game.fromModelObject(g[0])
 }
 
-export { create, addPlayer, getByCode, updateDeck, updateTurn, updatePile }
+export { create, addPlayer, getByCode, updateDeck, updateTurn, updatePile, updateLogs }
