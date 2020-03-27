@@ -9,43 +9,7 @@ let litNsp,
 	gameData = {},
 	socketIDMap = {}
 
-const baseUrl = '/literature'
-router.post(baseUrl + '/create', async (req, res) => {
-	let player = await LiteratureController.registerPlayer(
-		req.body.pid,
-		req.body.name,
-		req.body.pos
-	)
-	let game = await LiteratureController.hostGame(player)
-	setGameData(game.code, game)
-	res.send({
-		gameCode: game.code,
-		playerId: player.id
-	})
-})
-
-router.post(baseUrl + '/join', async (req, res) => {
-	try {
-		let game = getGameData(req.body.gameCode)
-		let player = await LiteratureController.registerPlayer(
-			req.body.pid,
-			req.body.name,
-			req.body.pos
-		)
-
-		await LiteratureController.joinGame(game, player)
-		setGameData(game.code, game)
-		res.send({
-			playerId: player.id
-		})
-	} catch (err) {
-		res.send({
-			error: err.message
-		})
-	}
-})
-
-var setupLiteratureGame = (ioObject, litNspObject) => {
+var setupLiteratureGame = (litNspObject) => {
 	litNsp = litNspObject
 	openSocketChannels()
 }
@@ -60,19 +24,61 @@ var setGameData = (gameCode: string, game: Game) => {
 
 var openSocketChannels = (): void => {
 	litNsp.on('connection', (socket) => {
-		socket.on('connect-game', (data) => {
-			var playerId = data.playerId
-			var gameCode = data.gameCode
-			var player = getGameData(gameCode).getPlayerById(playerId)
+		socket.on('create', async (data) => {
+			let playerName = data.name
+			let playerPosition = data.position
+			let playerId = data.pid
+			let gameCode
 
-			socket.join(gameCode)
-			socketIDMap[socket.id] = playerId
-			litNsp
-				.to(gameCode)
-				.emit('gameUpdates', player.name + ' has joined the game')
+			try {
+				let player = await LiteratureController.registerPlayer(
+					playerId,
+					playerName,
+					playerPosition
+				)
+				let game = await LiteratureController.hostGame(player)
+				gameCode = game.code
+
+				setGameData(game.code, game)
+				socket.join(game.code)
+				socketIDMap[socket.id] = playerId
+
+				litNsp
+					.to(game.code)
+					.emit('gameUpdates', player.name + ' has joined the game')
+			} catch (err) {
+				litNsp.to(gameCode).emit('gameUpdates', err.message)
+			}
 		})
 
-		socket.on('start-game', (data) => {
+		socket.on('join', async (data) => {
+			let gameCode = data.gameCode
+			let playerName = data.name
+			let playerPosition = data.position
+			let playerId = data.pid
+
+			try {
+				let game = getGameData(gameCode)
+				let player = await LiteratureController.registerPlayer(
+					playerId,
+					playerName,
+					playerPosition
+				)
+				await LiteratureController.joinGame(game, player)
+
+				setGameData(game.code, game)
+				socket.join(game.code)
+				socketIDMap[socket.id] = playerId
+
+				litNsp
+					.to(game.code)
+					.emit('gameUpdates', player.name + ' has joined the game')
+			} catch (err) {
+				litNsp.to(gameCode).emit('gameUpdates', err.message)
+			}
+		})
+
+		socket.on('start', (data) => {
 			let gameCode = data.gameCode
 			let playerId = data.playerId
 

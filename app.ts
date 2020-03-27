@@ -42,7 +42,7 @@ async.waterfall(
 		},
 		async () => {
 			var litNsp = await io.of('/literature')
-			setupLiteratureGame(io, litNsp)
+			setupLiteratureGame(litNsp)
 			server.listen(port)
 		}
 	],
