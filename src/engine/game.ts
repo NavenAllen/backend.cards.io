@@ -1,12 +1,13 @@
 import { Card, Deck, Player } from './index'
 import { GameService } from '../services'
 
-var GameError = (message): Error => {
-	const error = new Error(message)
-	error.message = message
-	return error
+class GameError extends Error {
+    constructor(message: string) {
+        super(message);
+        Object.setPrototypeOf(this, new.target.prototype);
+        this.name = GameError.name;
+    }
 }
-GameError.prototype = Object.create(Error.prototype)
 
 export class Game {
 	private _type: string;
@@ -18,6 +19,7 @@ export class Game {
 	private _isTeamGame: boolean;
 	private _players: Player[];
 	private _pile: Card[];
+	private _isActive: boolean;
 	private _currentTurn: number;
 	private _databaseObjectId: string;
 	private _logs: string[];
@@ -29,6 +31,7 @@ export class Game {
 		this._minPlayers = minPlayers
 		this._maxPlayers = maxPlayers
 		this._isTeamGame = isTeamGame
+		this._isActive = false
 		this._players = []
 		this._pile = []
 		this._logs = []
@@ -40,8 +43,6 @@ export class Game {
 			g._databaseObjectId = game.id
 			g._owner = owner
 			g.addPlayer(owner)
-		}).catch((error) => {
-			throw GameError(error.message)
 		})
 		return g
 	}
@@ -52,6 +53,7 @@ export class Game {
 		let g = new Game(obj.type, d, obj.minPlayers, obj.maxPlayers, obj.isTeam)
 		g.id = obj.id
 		g.code = obj.code
+		g.ifActive = obj.isActive
 		g.currentTurn = obj.currentTurn
 		g.pile = obj.pile
 		g.logs = obj.logs
@@ -81,6 +83,10 @@ export class Game {
 
 	get ifTeamGame(): boolean {
 		return this._isTeamGame
+	}
+
+	get ifActive(): boolean {
+		return this._isActive
 	}
 
 	get players(): Player[] {
@@ -115,11 +121,15 @@ export class Game {
 
 	set currentTurn(pos: number) {
 		this._currentTurn = pos
-		GameService.updateTurn(this._databaseObjectId, this._currentTurn)
+		GameService.updateTurn(this._databaseObjectId, this._currentTurn).catch((err) => { throw err })
 	}
 
 	set id(objectId: string) {
 		this._databaseObjectId = objectId
+	}
+
+	set ifActive(isActive: boolean) {
+		this._isActive = isActive
 	}
 
 	set code(c: string) {
@@ -140,12 +150,14 @@ export class Game {
 
 	log = async (entry: string) => {
 		this._logs.push(entry)
-		GameService.updateLogs(this._databaseObjectId, this._logs)
+		GameService.updateLogs(this._databaseObjectId, this._logs).catch((err) => { throw err })
 	}
 
 	addPlayer = async (newPlayer: Player) => {
-		if (this._players.length === this._maxPlayers) {
-			throw GameError('Player limit reached')
+		if (this._isActive) {
+			throw new GameError('Game already started')
+		} else if (this._players.length === this._maxPlayers) {
+			throw new GameError('Player limit reached')
 		} else {
 			this._players.push(newPlayer)
 			await GameService.addPlayer(this._databaseObjectId, newPlayer.id)
@@ -172,15 +184,15 @@ export class Game {
 
 	discardToPile = (card): void => {
 		this._pile.push(card)
-		GameService.updatePile(this._databaseObjectId, this.pile)
+		GameService.updatePile(this._databaseObjectId, this.pile).catch((err) => { throw err })
 	};
 
 	prepareGame = (cardCount = 0): void => {
 		if (this._isTeamGame && this._players.length % 2 !== 0)
-			throw GameError('Not enough players')
+			throw new GameError('Not enough players')
 
 		if (this._players.length < this._minPlayers)
-			throw GameError('Not enough players')
+			throw new GameError('Not enough players')
 
 		this._deck
 			.deal(this._players.length, cardCount)
@@ -189,7 +201,9 @@ export class Game {
 				console.log(this._players[index].getHand())
 			})
 
-		GameService.updateDeck(this._databaseObjectId, this._deck.cards)
+		this._isActive = true
+		GameService.updateState(this._databaseObjectId, this._isActive).catch((err) => { throw err })
+		GameService.updateDeck(this._databaseObjectId, this._deck.cards).catch((err) => { throw err })
 	};
 
 	randomString = (len): string => {

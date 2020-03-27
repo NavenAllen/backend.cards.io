@@ -3,16 +3,13 @@ import { GameService, PlayerService } from '../../services'
 
 var testLit = async () => {
 	let po = await Player.build('Nandha', 2)
-	hostGame(po).then(async (hostedGame) => {
-		var p1 = await Player.build('Naven', 3)
-		await hostedGame.addPlayer(p1)
-		var p2 = await Player.build('Vivek', 1)
-		await hostedGame.addPlayer(p2)
+	let hostedGame = await hostGame(po)
+	var p1 = await Player.build('Naven', 3)
+	await hostedGame.addPlayer(p1)
+	var p2 = await Player.build('Vivek', 1)
+	await hostedGame.addPlayer(p2)
 
-		GameService.getByCode(hostedGame.code).then((updatedGame) => {
-			console.log(updatedGame[0])
-		})
-	})
+	hostedGame.prepareGame()
 }
 
 var registerPlayer = async (id: string, name: string, pos: number) => {
@@ -24,10 +21,6 @@ var registerPlayer = async (id: string, name: string, pos: number) => {
 		player = await Player.build(name, pos)
 	}
 	return player
-}
-
-var getGame = async (code: string) => {
-	return await GameService.getByCode(code)
 }
 
 var hostGame = async (owner: Player) => {
@@ -100,4 +93,4 @@ var declareSet = async (
 		console.log(player.name + ' incorrectly declared the ' + 'SET')
 	}
 }
-export { getGame, registerPlayer, hostGame, joinGame, startGame, askForCard, transferTurn, declareSet }
+export { registerPlayer, hostGame, joinGame, startGame, askForCard, transferTurn, declareSet }

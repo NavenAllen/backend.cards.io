@@ -1,12 +1,13 @@
 import { Card } from './index'
 import { PlayerService } from '../services'
 
-var PlayerError = (message): Error => {
-	const error = new Error(message)
-	error.message = 'PlayerError'
-	return error
+class PlayerError extends Error {
+    constructor(message: string) {
+        super(message);
+        Object.setPrototypeOf(this, new.target.prototype);
+        this.name = PlayerError.name;
+    }
 }
-PlayerError.prototype = Object.create(Error.prototype)
 
 export class Player {
 	private _name: string
@@ -64,7 +65,7 @@ export class Player {
 
 	add = (card: Card): void => {
 		this._hand.push(card)
-		PlayerService.updateHand(this._databaseObjectId, this.getHand())
+		PlayerService.updateHand(this._databaseObjectId, this.getHand()).catch((err) => { throw err })
 	};
 
 	set position(position: number) {
@@ -73,12 +74,12 @@ export class Player {
 
 	set name(name: string) {
 		this._name = name
-		PlayerService.updateName(this._databaseObjectId, this._name)
+		PlayerService.updateName(this._databaseObjectId, this._name).catch((err) => { throw err })
 	}
 
 	set score(score: number) {
 		this._score = score
-		PlayerService.updateScore(this._databaseObjectId, this._score)
+		PlayerService.updateScore(this._databaseObjectId, this._score).catch((err) => { throw err })
 	}
 
 	set hand(hand: Card[]) {
@@ -101,10 +102,10 @@ export class Player {
 	discard = (card: string): Card => {
 		const index = this.getIndexOf(card)
 		if (index === -1) {
-			throw PlayerError('Does not have the requested card')
+			throw new PlayerError('DISCARD: Does not have the requested card')
 		} else {
 			let discarded = this._hand.splice(index, index + 1)[0]
-			PlayerService.updateHand(this._databaseObjectId, this.getHand())
+			PlayerService.updateHand(this._databaseObjectId, this.getHand()).catch((err) => { throw err })
 			return discarded
 		}
 	}

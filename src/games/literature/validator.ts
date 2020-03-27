@@ -1,5 +1,13 @@
 import { Player, Game } from "../../engine";
 
+class ValidationError extends Error {
+    constructor(message: string) {
+        super(message);
+        Object.setPrototypeOf(this, new.target.prototype);
+        this.name = ValidationError.name;
+    }
+}
+
 const lowerClubs = ['2C', '3C', '4C', '5C', '6C', '7C']
 const higherClubs = ['9C', '10C', 'JC', 'QC', 'KC', 'AC']
 
@@ -47,13 +55,13 @@ const canAsk = (player: Player, card: string) => {
 		return baseSet.includes(c)
 	})
 	if (intersection.length === 0)
-		throw new Error('No base card')
+		throw new ValidationError('No base card')
 }
 
 const didJustDeclare = (game: Game) => {
 	let lastLog = game.logs.slice(-1)[0]
 	if (!lastLog.startsWith('DECLARE') && !lastLog.startsWith('TRANSFER'))
-		throw new Error('You can only transfer turn after declaring')
+		throw new ValidationError('You can only transfer turn after declaring')
 }
 
 export { canAsk, didJustDeclare }

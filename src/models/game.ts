@@ -13,6 +13,7 @@ var Game = thinky.createModel('game', {
 	minPlayers: type.number(),
 	maxPlayers: type.number(),
 	isTeam: type.boolean(),
+	isActive: type.boolean(),
 	logs: [type.string()],
 	createdAt: type.date().default(thinky.r.now())
 })

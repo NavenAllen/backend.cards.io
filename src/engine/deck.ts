@@ -1,9 +1,10 @@
-var DeckError = (message: string): Error => {
-	const error = new Error(message)
-	error.message = 'DeckError'
-	return error
+class DeckError extends Error {
+    constructor(message: string) {
+        super(message);
+        Object.setPrototypeOf(this, new.target.prototype);
+        this.name = DeckError.name;
+    }
 }
-DeckError.prototype = Object.create(Error.prototype)
 
 export class Card {
 	private _number: string
@@ -84,7 +85,7 @@ export class Deck {
 	) {
 		exclusions.filter((e) => {
 			if (!e.match(/([2-9]|10|[JQKA])[SCDH]/)) {
-				throw DeckError('Invalid Card => ' + e)
+				throw new DeckError('Invalid Card => ' + e)
 			}
 		})
 
@@ -159,7 +160,7 @@ export class Deck {
 			cardCount = Math.floor(this._cards.length / playerCount)
 			enablePile = false
 		} else if (cardCount * playerCount > this._cards.length) {
-			throw DeckError('Not enough cards in deck')
+			throw new DeckError('Not enough cards in deck')
 		}
 
 		this.shuffle()
