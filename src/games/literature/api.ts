@@ -2,16 +2,18 @@ import express from 'express'
 import * as LiteratureController from './controller'
 import * as LiteratureValidator from './validator'
 import * as Validator from '../../util/validator'
-import { Game } from '../../engine'
+import { Game, Player } from '../../engine'
+import { GameService, PlayerService } from '../../services'
 
 let router = express.Router()
 let litNsp,
 	gameData = {},
 	socketIDMap = {}
 
-var setupLiteratureGame = (litNspObject) => {
+var setupLiteratureGame = async (litNspObject) => {
 	litNsp = litNspObject
 	openSocketChannels()
+	setUpdateEventListeners()
 }
 
 var getGameData = (gameCode: string): Game => {
@@ -20,6 +22,16 @@ var getGameData = (gameCode: string): Game => {
 
 var setGameData = (game: Game) => {
 	gameData[game.code] = game
+}
+
+var onGameUpdate: Function = async (game: Game) => {
+	setGameData(game)
+	litNsp.to(game.code).emit('game-updates', game)
+}
+
+var onPlayerUpdate = (player: Player) => {
+	let socketId = socketIDMap[player.id]
+	litNsp.to(socketId).emit('player-updates', player)
 }
 
 var openSocketChannels = (): void => {
@@ -45,9 +57,9 @@ var openSocketChannels = (): void => {
 
 				litNsp
 					.to(game.code)
-					.emit('gameUpdates', player.name + ' has joined the game')
+					.emit('game-updates', player.name + ' has joined the game')
 			} catch (err) {
-				litNsp.to(gameCode).emit('gameUpdates', err.message)
+				litNsp.to(gameCode).emit('game-updates', err.message)
 			}
 		})
 
@@ -72,9 +84,9 @@ var openSocketChannels = (): void => {
 
 				litNsp
 					.to(game.code)
-					.emit('gameUpdates', player.name + ' has joined the game')
+					.emit('game-updates', player.name + ' has joined the game')
 			} catch (err) {
-				litNsp.to(gameCode).emit('gameUpdates', err.message)
+				litNsp.to(gameCode).emit('game-updates', err.message)
 			}
 		})
 
@@ -90,9 +102,9 @@ var openSocketChannels = (): void => {
 				LiteratureController.startGame(game)
 
 				setGameData(game)
-				litNsp.to(gameCode).emit('gameUpdates', 'Started game')
+				litNsp.to(gameCode).emit('game-updates', 'Started game')
 			} catch (err) {
-				litNsp.to(gameCode).emit('gameUpdates', err.message)
+				litNsp.to(gameCode).emit('game-updates', err.message)
 			}
 		})
 
@@ -168,6 +180,11 @@ var openSocketChannels = (): void => {
 			}
 		})
 	})
+}
+
+var setUpdateEventListeners = () => {
+	GameService.setGameUpdatesCallback(onGameUpdate)
+	PlayerService.setPlayerUpdatesCallback(onPlayerUpdate)
 }
 
 export { router as LiteratureRouter, setupLiteratureGame }

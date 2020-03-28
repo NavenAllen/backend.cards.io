@@ -1,6 +1,7 @@
 import { Game, Player } from '../engine'
 import { GameModel, PlayerModel } from '../models'
 import { thinky } from '../util/thinky'
+import { cursorTo } from 'readline'
 
 const r = thinky.r
 
@@ -105,11 +106,32 @@ var updateLogs = async (id: string, logs: string[]) => {
 
 var getByCode = async (gameCode: string) => {
 	try {
-		var g = await GameModel.filter(r.row('code').eq(gameCode)).getJoin({players: true, owner: true}).run()
+		var g = await GameModel.filter(r.row('code').eq(gameCode))
+			.getJoin({ players: true, owner: true })
+			.run()
 	} catch (err) {
 		throw new DatabaseError('GET GAME: Game does not exist')
 	}
 	return Game.fromModelObject(g[0])
 }
 
-export { create, addPlayer, getByCode, updateState, updateDeck, updateTurn, updatePile, updateLogs }
+var setGameUpdatesCallback = (callback) => {
+	GameModel.changes().then((feed) => {
+		feed.each((err, doc) => {
+			if (err) throw err
+			callback(doc)
+		})
+	})
+}
+
+export {
+	create,
+	addPlayer,
+	getByCode,
+	updateState,
+	updateDeck,
+	updateTurn,
+	updatePile,
+	updateLogs,
+	setGameUpdatesCallback
+}

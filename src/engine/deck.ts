@@ -10,7 +10,6 @@ export class Card {
 	private _number: string
 	private _suite: string
 	private _value: number
-	private _dataObjectId: string
 
 	constructor(number: string, suite: string) {
 		this._number = number
@@ -54,7 +53,7 @@ export class Card {
 
 	get value(): number {
 		return this._value
-	};
+	}
 
 	static fromString = (c: string): Card => {
 		let suite = c.slice(-1)
@@ -63,7 +62,7 @@ export class Card {
 			suite = 'JOKER'
 			number = ''
 		}
-		return (new Card(suite, number))
+		return new Card(suite, number)
 	}
 
 	static fromStringArray = (c: string[]): Card[] => {
