@@ -24,6 +24,10 @@ var setGameData = (game: Game) => {
 	gameData[game.code] = game
 }
 
+var removeGameData = (game: Game) => {
+	delete gameData[game.code]
+}
+
 var onGameUpdate: Function = async (game: Game) => {
 	litNsp.to(game.code).emit('game-data', game)
 }
@@ -122,6 +126,23 @@ var openSocketChannels = (): void => {
 					.emit('game-updates', player.name + ' has left the game')
 			} catch (err) {
 				litNsp.to(gameCode).emit('game-updates', err.message)
+			}
+		})
+
+		socket.on('destroy', async (data) => {
+			let gameCode = data.gameCode
+			let playerId = data.playerId
+
+			try {
+				let game = getGameData(gameCode)
+				let player = game.getPlayerById(playerId)
+
+				Validator.isOwner(game, player)
+				LiteratureController.destroyGame(game)
+
+				removeGameData(game)
+			} catch (err) {
+				console.log('Unable to delete game')
 			}
 		})
 

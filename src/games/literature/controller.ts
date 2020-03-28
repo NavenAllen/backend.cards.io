@@ -38,6 +38,18 @@ var hostGame = async (owner: Player) => {
 		isTeamGame,
 		owner
 	)
+	g.decideStarter = function () {
+		this._currentTurn = 1
+	}
+	g.isGameOver = function () {
+		for (let i = 0; i < this._players.length; i++) {
+			if (this._players[i].getHand().length > 0) return false
+		}
+		return true
+	}
+	g.processRound = function () {
+		if (this._isGameOver()) this.end()
+	}
 	g.log('CREATE:' + owner.name)
 	return g
 }
@@ -55,6 +67,10 @@ var leaveGame = async (game: Game, player: Player) => {
 var startGame = async (game: Game) => {
 	game.prepareGame()
 	game.log('START')
+}
+
+var destroyGame = async (game: Game) => {
+	game.destroy()
 }
 
 var askForCard = async (game: Game, from: Player, to: Player, card: string) => {
@@ -104,6 +120,7 @@ var declareSet = async (
 		game.log('DECLARE:' + game.players[opponent].name + ':' + 'SET')
 		console.log(player.name + ' incorrectly declared the ' + 'SET')
 	}
+	game.processRound()
 }
 export {
 	registerPlayer,
@@ -111,6 +128,7 @@ export {
 	joinGame,
 	leaveGame,
 	startGame,
+	destroyGame,
 	askForCard,
 	transferTurn,
 	declareSet

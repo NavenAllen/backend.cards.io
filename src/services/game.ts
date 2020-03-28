@@ -130,6 +130,15 @@ var getByCode = async (gameCode: string) => {
 	return Game.fromModelObject(g[0])
 }
 
+var destroy = async (id: string) => {
+	try {
+		var g = await GameModel.get(id).run()
+		g.delete()
+	} catch (err) {
+		throw new DatabaseError('DESTROY GAME: Unable to delete')
+	}
+}
+
 var setGameUpdatesCallback = (callback) => {
 	GameModel.changes().then((feed) => {
 		feed.each((err, doc) => {
@@ -149,5 +158,6 @@ export {
 	updateTurn,
 	updatePile,
 	updateLogs,
+	destroy,
 	setGameUpdatesCallback
 }

@@ -23,6 +23,9 @@ export class Game {
 	private _currentTurn: number
 	private _databaseObjectId: string
 	private _logs: string[]
+	private _decideStarter: Function
+	private _isGameOver: Function
+	private _processRound: Function
 
 	constructor(
 		type: string,
@@ -138,6 +141,10 @@ export class Game {
 		return this._logs
 	}
 
+	get isGameOver(): Function {
+		return this._isGameOver
+	}
+
 	set currentTurn(pos: number) {
 		this._currentTurn = pos
 		GameService.updateTurn(this._databaseObjectId, this._currentTurn).catch(
@@ -145,6 +152,18 @@ export class Game {
 				throw err
 			}
 		)
+	}
+
+	set decideStarter(starter: Function) {
+		this._decideStarter = starter.bind(this)
+	}
+
+	set isGameOver(gameOver: Function) {
+		this._isGameOver = gameOver.bind(this)
+	}
+
+	set processRound(processor: Function) {
+		this._processRound = processor.bind(this)
 	}
 
 	set id(objectId: string) {
@@ -171,7 +190,7 @@ export class Game {
 		this._logs = logs
 	}
 
-	log = async (entry: string) => {
+	log = (entry: string) => {
 		this._logs.push(entry)
 		GameService.updateLogs(this._databaseObjectId, this._logs).catch(
 			(err) => {
@@ -194,6 +213,40 @@ export class Game {
 				}
 			)
 		}
+	}
+
+	end = async () => {
+		if (this._isTeamGame) {
+			let aScore = 0,
+				bScore = 0
+			this._players.forEach((p) => {
+				if (p.position % 2 == 0) aScore += p.score
+				else bScore += p.score
+			})
+			let winner: string
+			let mod = 0
+			if (bScore > aScore) mod = 1
+			this._players.forEach((p) => {
+				if (p.position % 2 == mod) winner += p.name + '/'
+			})
+			this.log('WINNER:' + winner.slice(0, -1))
+		} else {
+			this._players.sort((a, b) => {
+				return b.score - a.score
+			})
+			let winner = this._players[0]
+			this.log('WINNER:' + winner.name)
+		}
+		this._isActive = false
+		GameService.updateState(this._databaseObjectId, this._isActive).catch(
+			(err) => {
+				throw err
+			}
+		)
+	}
+
+	destroy = () => {
+		GameService.destroy(this._databaseObjectId)
 	}
 
 	addPlayer = async (newPlayer: Player) => {
@@ -282,6 +335,12 @@ export class Game {
 			}
 		)
 		GameService.updateDeck(this._databaseObjectId, this._deck.cards).catch(
+			(err) => {
+				throw err
+			}
+		)
+		this._decideStarter()
+		GameService.updateTurn(this._databaseObjectId, this._currentTurn).catch(
 			(err) => {
 				throw err
 			}
