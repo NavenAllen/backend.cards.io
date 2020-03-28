@@ -1,4 +1,3 @@
-import { Card } from './index'
 import { PlayerService } from '../services'
 
 class PlayerError extends Error {
@@ -14,14 +13,14 @@ class PlayerError extends Error {
 export class Player {
 	private _name: string
 	private _position: number
-	private _hand: Card[]
+	private _hand: string[]
 	private _score: number
 	private _databaseObjectId: string
 
 	constructor(
 		name: string,
 		position: number,
-		hand: Card[] = [],
+		hand: string[] = [],
 		score: number = 0
 	) {
 		this._name = name
@@ -39,12 +38,7 @@ export class Player {
 	}
 
 	static fromModelObject = (obj: any): Player => {
-		let p = new Player(
-			obj.name,
-			obj.position,
-			Card.fromStringArray(obj.hand),
-			obj.score
-		)
+		let p = new Player(obj.name, obj.position, obj.hand, obj.score)
 		p.id = obj.id
 		return p
 	}
@@ -65,19 +59,13 @@ export class Player {
 		return this._score
 	}
 
-	get hand(): Card[] {
+	get hand(): string[] {
 		return this._hand
 	}
 
-	getHand = (): string[] => {
-		return this._hand.map((c) => {
-			return c.number + c.suite
-		})
-	}
-
-	add = (card: Card): void => {
+	add = (card: string): void => {
 		this._hand.push(card)
-		PlayerService.updateHand(this._databaseObjectId, this.getHand()).catch(
+		PlayerService.updateHand(this._databaseObjectId, this._hand).catch(
 			(err) => {
 				throw err
 			}
@@ -106,7 +94,7 @@ export class Player {
 		)
 	}
 
-	set hand(hand: Card[]) {
+	set hand(hand: string[]) {
 		this._hand = hand
 	}
 
@@ -114,16 +102,16 @@ export class Player {
 		this._databaseObjectId = objectId
 	}
 
-	getIndexOf = (card): number => {
+	getIndexOf = (card: string): number => {
 		for (let i = 0; i < this._hand.length; i++) {
-			if (this._hand[i].string === card) {
+			if (this._hand[i] === card) {
 				return i
 			}
 		}
 		return -1
 	}
 
-	discard = (card: string): Card => {
+	discard = (card: string): string => {
 		const index = this.getIndexOf(card)
 		if (index === -1) {
 			throw new PlayerError(
@@ -132,19 +120,12 @@ export class Player {
 			)
 		} else {
 			let discarded = this._hand.splice(index, 1)[0]
-			PlayerService.updateHand(
-				this._databaseObjectId,
-				this.getHand()
-			).catch((err) => {
-				throw err
-			})
+			PlayerService.updateHand(this._databaseObjectId, this._hand).catch(
+				(err) => {
+					throw err
+				}
+			)
 			return discarded
 		}
-	}
-
-	sort = (): void => {
-		this._hand.sort((a, b) => {
-			return a.value - b.value
-		})
 	}
 }

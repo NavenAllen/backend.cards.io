@@ -25,8 +25,7 @@ const higherHearts = ['9H', '10H', 'JH', 'QH', 'KH', 'AH']
 const jokers = ['8C', '8D', '8S', '8D', 'JOKER', 'JOKER']
 
 const canAsk = (player: Player, card: string) => {
-	if (player.getHand().includes(card))
-		throw new Error('Already have the card')
+	if (player.hand.includes(card)) throw new Error('Already have the card')
 
 	let baseSet: string[]
 	if (card.slice(-1) == 'C') {
@@ -45,7 +44,7 @@ const canAsk = (player: Player, card: string) => {
 		baseSet = jokers
 	}
 
-	let intersection = player.getHand().filter((c: string) => {
+	let intersection = player.hand.filter((c: string) => {
 		return baseSet.includes(c)
 	})
 	if (intersection.length === 0)

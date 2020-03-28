@@ -1,4 +1,4 @@
-import { Card, Deck, Player } from './index'
+import { Deck, Player } from './index'
 import { GameService } from '../services'
 
 class GameError extends Error {
@@ -20,7 +20,7 @@ export class Game {
 	private _maxPlayers: number
 	private _isTeamGame: boolean
 	private _players: Player[]
-	private _pile: Card[]
+	private _pile: string[]
 	private _isActive: boolean
 	private _currentTurn: number
 	private _databaseObjectId: string
@@ -118,9 +118,7 @@ export class Game {
 	}
 
 	get pile(): string[] {
-		return this._pile.map((c) => {
-			return c.number + c.suite
-		})
+		return this._pile
 	}
 
 	get currentTurn(): number {
@@ -181,7 +179,7 @@ export class Game {
 	}
 
 	set pile(cards: string[]) {
-		this._pile = Card.fromStringArray(cards)
+		this._pile = cards
 	}
 
 	set owner(owner: Player) {
@@ -327,7 +325,7 @@ export class Game {
 			.deal(this._players.length, cardCount)
 			.forEach((hand, index) => {
 				this._players[index].hand = hand
-				console.log(this._players[index].getHand())
+				console.log(this._players[index].hand)
 			})
 
 		this._isActive = true

@@ -8,76 +8,8 @@ class DeckError extends Error {
 	}
 }
 
-export class Card {
-	private _number: string
-	private _suite: string
-	private _value: number
-
-	constructor(number: string, suite: string) {
-		this._number = number
-		this._suite = suite
-
-		this._value = parseInt(number)
-		if (number === 'J') this._value = 11
-		if (number === 'Q') this._value = 12
-		if (number === 'K') this._value = 13
-		if (number === 'A') this._value = 14
-
-		switch (suite) {
-			case 'C':
-				this._value += 100
-				break
-			case 'D':
-				this._value += 200
-				break
-			case 'S':
-				this._value += 300
-				break
-			case 'H':
-				this._value += 400
-				break
-			case 'JOKER':
-				this._value = 500
-		}
-	}
-
-	get number(): string {
-		return this._number
-	}
-
-	get suite(): string {
-		return this._suite
-	}
-
-	get string(): string {
-		return this.number + this.suite
-	}
-
-	get value(): number {
-		return this._value
-	}
-
-	static fromString = (c: string): Card => {
-		let suite = c.slice(-1)
-		let number = c.slice(0, -1)
-		if (suite === 'R') {
-			suite = 'JOKER'
-			number = ''
-		}
-		return new Card(suite, number)
-	}
-
-	static fromStringArray = (c: string[]): Card[] => {
-		let cards = []
-		c.forEach((e: string) => {
-			cards.push(Card.fromString(e))
-		})
-		return cards
-	}
-}
-
 export class Deck {
-	private _cards: Card[]
+	private _cards: string[]
 
 	constructor(
 		excludeJokers = false,
@@ -111,7 +43,7 @@ export class Deck {
 		while (deckCount > 0) {
 			suites.forEach((suite) => {
 				numbers.forEach((number) => {
-					var currentCard = new Card(number, suite)
+					var currentCard = number + suite
 					if (!exclusions.includes(number + suite)) {
 						this._cards.push(currentCard)
 					}
@@ -119,7 +51,7 @@ export class Deck {
 			})
 
 			if (!excludeJokers) {
-				this._cards.push(new Card('', 'JOKER'), new Card('', 'JOKER'))
+				this._cards.push('JOKER', 'JOKER')
 			}
 
 			deckCount--
@@ -127,13 +59,11 @@ export class Deck {
 	}
 
 	get cards(): string[] {
-		return this._cards.map((c) => {
-			return c.number + c.suite
-		})
+		return this._cards
 	}
 
-	set cards(c: string[]) {
-		this._cards = Card.fromStringArray(c)
+	set cards(cards: string[]) {
+		this._cards = cards
 	}
 
 	shuffle = (n = 5): void => {
@@ -155,7 +85,7 @@ export class Deck {
 		}
 	}
 
-	deal = (playerCount, cardCount = 0): Card[][] => {
+	deal = (playerCount, cardCount = 0): string[][] => {
 		let enablePile = true
 		if (cardCount === 0) {
 			cardCount = Math.floor(this._cards.length / playerCount)
@@ -183,12 +113,12 @@ export class Deck {
 		return result
 	}
 
-	draw = (): Card => {
+	draw = (): string => {
 		return this._cards.splice(0, 1)[0]
 	}
 
 	refresh = (discardPile: string[]): void => {
-		this._cards = Card.fromStringArray(discardPile)
+		this._cards = discardPile
 		this.shuffle()
 	}
 }
