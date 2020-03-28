@@ -2,8 +2,10 @@ import { Card, Deck, Player } from './index'
 import { GameService } from '../services'
 
 class GameError extends Error {
-	constructor(message: string) {
+	public code: number
+	constructor(code: number, message: string) {
 		super(message)
+		this.code = code
 		Object.setPrototypeOf(this, new.target.prototype)
 		this.name = GameError.name
 	}
@@ -201,9 +203,9 @@ export class Game {
 
 	removePlayer = async (player: Player) => {
 		if (this._isActive) {
-			throw new GameError('Game already started')
+			throw new GameError(403, 'LEAVE: Game already started')
 		} else if (this._owner.id === player.id) {
-			throw new GameError('Owner cannot leave the game')
+			throw new GameError(403, 'LEAVE: Owner cannot leave the game')
 		} else {
 			let index = this._players.indexOf(this.getPlayerById(player.id))
 			this._players.splice(index, 1)
@@ -251,9 +253,9 @@ export class Game {
 
 	addPlayer = async (newPlayer: Player) => {
 		if (this._isActive) {
-			throw new GameError('Game already started')
+			throw new GameError(403, 'JOIN: Game already started')
 		} else if (this._players.length === this._maxPlayers) {
-			throw new GameError('Player limit reached')
+			throw new GameError(403, 'JOIN: Player limit reached')
 		} else {
 			this._players.push(newPlayer)
 			GameService.addPlayer(this._databaseObjectId, newPlayer.id).catch(
@@ -316,10 +318,10 @@ export class Game {
 
 	prepareGame = (cardCount = 0): void => {
 		if (this._isTeamGame && this._players.length % 2 !== 0)
-			throw new GameError('Not enough players')
+			throw new GameError(403, 'START: Not enough players')
 
 		if (this._players.length < this._minPlayers)
-			throw new GameError('Not enough players')
+			throw new GameError(403, 'START: Not enough players')
 
 		this._deck
 			.deal(this._players.length, cardCount)

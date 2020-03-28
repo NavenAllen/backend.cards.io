@@ -1,11 +1,13 @@
-import { Player, Game } from "../../engine";
+import { Player, Game } from '../../engine'
 
 class ValidationError extends Error {
-    constructor(message: string) {
-        super(message);
-        Object.setPrototypeOf(this, new.target.prototype);
-        this.name = ValidationError.name;
-    }
+	public code: number
+	constructor(code: number, message: string) {
+		super(message)
+		this.code = code
+		Object.setPrototypeOf(this, new.target.prototype)
+		this.name = ValidationError.name
+	}
 }
 
 const lowerClubs = ['2C', '3C', '4C', '5C', '6C', '7C']
@@ -27,41 +29,36 @@ const canAsk = (player: Player, card: string) => {
 		throw new Error('Already have the card')
 
 	let baseSet: string[]
-	if (card.slice(-1) == 'C'){
-		if (Number(card[0]) > 1 && Number(card[0]) < 8)
-			baseSet = lowerClubs
-		else
-			baseSet = higherClubs
-	} else if (card.slice(-1) == 'D'){
-		if (Number(card[0]) > 1 && Number(card[0]) < 8)
-			baseSet = lowerDiamonds
-		else
-			baseSet = higherDiamonds
-	} else if (card.slice(-1) == 'S'){
-		if (Number(card[0]) > 1 && Number(card[0]) < 8)
-			baseSet = lowerSpades
-		else
-			baseSet = higherSpades
-	} else if (card.slice(-1) == 'H'){
-		if (Number(card[0]) > 1 && Number(card[0]) < 8)
-			baseSet = lowerHearts
-		else
-			baseSet = higherHearts
+	if (card.slice(-1) == 'C') {
+		if (Number(card[0]) > 1 && Number(card[0]) < 8) baseSet = lowerClubs
+		else baseSet = higherClubs
+	} else if (card.slice(-1) == 'D') {
+		if (Number(card[0]) > 1 && Number(card[0]) < 8) baseSet = lowerDiamonds
+		else baseSet = higherDiamonds
+	} else if (card.slice(-1) == 'S') {
+		if (Number(card[0]) > 1 && Number(card[0]) < 8) baseSet = lowerSpades
+		else baseSet = higherSpades
+	} else if (card.slice(-1) == 'H') {
+		if (Number(card[0]) > 1 && Number(card[0]) < 8) baseSet = lowerHearts
+		else baseSet = higherHearts
 	} else {
 		baseSet = jokers
 	}
-	
+
 	let intersection = player.getHand().filter((c: string) => {
 		return baseSet.includes(c)
 	})
 	if (intersection.length === 0)
-		throw new ValidationError('No base card')
+		throw new ValidationError(400, 'INVALID: No base card')
 }
 
 const didJustDeclare = (game: Game) => {
 	let lastLog = game.logs.slice(-1)[0]
 	if (!lastLog.startsWith('DECLARE') && !lastLog.startsWith('TRANSFER'))
-		throw new ValidationError('You can only transfer turn after declaring')
+		throw new ValidationError(
+			403,
+			'INVALID: You can only transfer turn after declaring'
+		)
 }
 
 export { canAsk, didJustDeclare }

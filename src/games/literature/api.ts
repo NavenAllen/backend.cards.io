@@ -29,12 +29,18 @@ var removeGameData = (game: Game) => {
 }
 
 var onGameUpdate: Function = async (game: Game) => {
-	litNsp.to(game.code).emit('game-data', game)
+	litNsp.to(game.code).emit('game-data', {
+		type: 'GAME',
+		data: game
+	})
 }
 
 var onPlayerUpdate = (player: Player) => {
 	let socketId = socketIDMap[player.id]
-	litNsp.to(socketId).emit('player-data', player)
+	litNsp.to(socketId).emit('player-data', {
+		type: 'PLAYER',
+		data: player
+	})
 }
 
 var openSocketChannels = (): void => {
@@ -58,16 +64,23 @@ var openSocketChannels = (): void => {
 				socket.join(game.code)
 				socketIDMap[socket.id] = playerId
 
-				litNsp
-					.to(game.code)
-					.emit('game-updates', player.name + ' has joined the game')
+				litNsp.to(socket.id).emit('game-updates', {
+					type: 'CREATE',
+					gcode: game.code,
+					pid: player.id,
+					pname: player.name
+				})
 			} catch (err) {
-				litNsp.to(gameCode).emit('game-updates', err.message)
+				litNsp.to(socket.id).emit('game-updates', {
+					code: err.code,
+					name: err.name,
+					message: err.message
+				})
 			}
 		})
 
 		socket.on('probe', async (data) => {
-			let gameCode = data.gameCode
+			let gameCode = data.code
 
 			try {
 				let game = getGameData(gameCode)
@@ -75,12 +88,16 @@ var openSocketChannels = (): void => {
 
 				litNsp.to(socket.id).emit('game-probe', response)
 			} catch (err) {
-				litNsp.to(gameCode).emit('game-probe', err.message)
+				litNsp.to(socket.id).emit('game-probe', {
+					code: err.code,
+					name: err.name,
+					message: err.message
+				})
 			}
 		})
 
 		socket.on('join', async (data) => {
-			let gameCode = data.gameCode
+			let gameCode = data.code
 			let playerName = data.name
 			let playerPosition = data.position
 			let playerId = data.pid
@@ -100,16 +117,22 @@ var openSocketChannels = (): void => {
 				socket.join(game.code)
 				socketIDMap[socket.id] = playerId
 
-				litNsp
-					.to(game.code)
-					.emit('game-updates', player.name + ' has joined the game')
+				litNsp.to(game.code).emit('game-updates', {
+					type: 'JOIN',
+					pname: player.name,
+					position: player.position
+				})
 			} catch (err) {
-				litNsp.to(gameCode).emit('game-updates', err.message)
+				litNsp.to(gameCode).emit('game-updates', {
+					code: err.code,
+					name: err.name,
+					message: err.message
+				})
 			}
 		})
 
 		socket.on('leave', async (data) => {
-			let gameCode = data.gameCode
+			let gameCode = data.code
 			let playerId = data.pid
 
 			try {
@@ -121,17 +144,23 @@ var openSocketChannels = (): void => {
 				socket.leave(game.code)
 				socketIDMap[socket.id] = playerId
 
-				litNsp
-					.to(game.code)
-					.emit('game-updates', player.name + ' has left the game')
+				litNsp.to(game.code).emit('game-updates', {
+					type: 'LEAVE',
+					pname: player.name,
+					position: player.position
+				})
 			} catch (err) {
-				litNsp.to(gameCode).emit('game-updates', err.message)
+				litNsp.to(gameCode).emit('game-updates', {
+					code: err.code,
+					name: err.name,
+					message: err.message
+				})
 			}
 		})
 
 		socket.on('destroy', async (data) => {
-			let gameCode = data.gameCode
-			let playerId = data.playerId
+			let gameCode = data.code
+			let playerId = data.pid
 
 			try {
 				let game = getGameData(gameCode)
@@ -147,8 +176,8 @@ var openSocketChannels = (): void => {
 		})
 
 		socket.on('start', (data) => {
-			let gameCode = data.gameCode
-			let playerId = data.playerId
+			let gameCode = data.code
+			let playerId = data.pid
 
 			try {
 				let game = getGameData(gameCode)
@@ -158,20 +187,26 @@ var openSocketChannels = (): void => {
 				LiteratureController.startGame(game)
 
 				setGameData(game)
-				litNsp.to(gameCode).emit('game-updates', 'Started game')
+				litNsp.to(gameCode).emit('game-updates', {
+					type: 'START'
+				})
 			} catch (err) {
-				litNsp.to(gameCode).emit('game-updates', err.message)
+				litNsp.to(gameCode).emit('game-updates', {
+					code: err.code,
+					name: err.name,
+					message: err.message
+				})
 			}
 		})
 
 		socket.on('play-ask', (data) => {
 			let card = data.card
-			let gameCode = data.gameCode
+			let gameCode = data.code
 
 			try {
 				let game = getGameData(gameCode)
-				let fromPlayer = game.getPlayerByPosition(data.fromId)
-				let toPlayer = game.getPlayerByPosition(data.toPos)
+				let fromPlayer = game.getPlayerById(data.fid)
+				let toPlayer = game.getPlayerByPosition(data.tpos)
 
 				Validator.isMyTurn(game, fromPlayer)
 				LiteratureValidator.canAsk(fromPlayer, card)
@@ -181,24 +216,19 @@ var openSocketChannels = (): void => {
 					toPlayer,
 					card
 				)
-				litNsp
-					.to(gameCode)
-					.emit(
-						'play-ask',
-						fromPlayer.name +
-							' has asked ' +
-							toPlayer.name +
-							' for the card ' +
-							card
-					)
+				litNsp.to(socket.id).emit('play-ask', { type: 'ASK' })
 			} catch (err) {
-				litNsp.to(gameCode).emit('play-ask', err.message)
+				litNsp.to(socket.id).emit('play-ask', {
+					code: err.code,
+					name: err.name,
+					message: err.message
+				})
 			}
 		})
 
 		socket.on('play-declare', (data) => {
-			let gameCode = data.gameCode
-			let playerId = data.playerId
+			let gameCode = data.code
+			let playerId = data.pid
 			let declaration = data.declaration
 
 			try {
@@ -207,18 +237,20 @@ var openSocketChannels = (): void => {
 
 				Validator.isMyTurn(game, from)
 				LiteratureController.declareSet(game, from, declaration)
-				litNsp
-					.to(gameCode)
-					.emit('play-declare', 'Declared set successfully')
+				litNsp.to(socket.id).emit('play-declare', { type: 'DECLARE' })
 			} catch (err) {
-				litNsp.to(gameCode).emit('play-declare', err.message)
+				litNsp.to(socket.id).emit('play-declare', {
+					code: err.code,
+					name: err.name,
+					message: err.message
+				})
 			}
 		})
 
 		socket.on('play-transfer', (data) => {
-			let gameCode = data.gameCode
-			let fromId = data.fromId
-			let toPos = data.toPos
+			let gameCode = data.code
+			let fromId = data.fid
+			let toPos = data.tpos
 
 			try {
 				let game = getGameData(gameCode)
@@ -230,9 +262,13 @@ var openSocketChannels = (): void => {
 				Validator.areSameTeam(from, to)
 				LiteratureValidator.didJustDeclare(game)
 				LiteratureController.transferTurn(game, from, to)
-				litNsp.to(gameCode).emit('play-transfer', 'Transferred turn')
+				litNsp.to(socket.id).emit('play-transfer', { type: 'TRANSFER' })
 			} catch (err) {
-				litNsp.to(gameCode).emit('play-transfer', err.message)
+				litNsp.to(socket.id).emit('play-transfer', {
+					code: err.code,
+					name: err.name,
+					message: err.message
+				})
 			}
 		})
 	})

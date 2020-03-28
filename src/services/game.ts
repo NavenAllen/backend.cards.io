@@ -6,8 +6,10 @@ import { cursorTo } from 'readline'
 const r = thinky.r
 
 class DatabaseError extends Error {
-	constructor(message: string) {
+	public code: number
+	constructor(code: number, message: string) {
 		super(message)
+		this.code = code
 		Object.setPrototypeOf(this, new.target.prototype)
 		this.name = DatabaseError.name
 	}
@@ -28,7 +30,7 @@ var create = async (game: Game, owner: Player) => {
 	try {
 		var player = await PlayerModel.get(owner.id).run()
 	} catch (err) {
-		throw new DatabaseError('GET OWNER: Player does not exist')
+		throw new DatabaseError(500, 'GET OWNER: Player does not exist')
 	}
 
 	gameObject.owner = player
@@ -37,7 +39,7 @@ var create = async (game: Game, owner: Player) => {
 	try {
 		var gameData = await gameObject.saveAll({ owner: true, players: true })
 	} catch (err) {
-		throw new DatabaseError('SAVE GAME: Unable to save game')
+		throw new DatabaseError(500, 'SAVE GAME: Unable to save game')
 	}
 
 	return gameData
@@ -48,7 +50,10 @@ var addPlayer = async (gameId: string, playerId: string) => {
 		var game = await GameModel.get(gameId).getJoin({ players: true }).run()
 		var player = await PlayerModel.get(playerId).run()
 	} catch (err) {
-		throw new DatabaseError('ADD PLAYER: Requested object does not exist')
+		throw new DatabaseError(
+			500,
+			'ADD PLAYER: Requested object does not exist'
+		)
 	}
 	game.players.push(player)
 	game.saveAll({ owner: true, players: true })
@@ -63,7 +68,10 @@ var removePlayer = async (gameId: string, playerId: string) => {
 			})
 		)
 	} catch (err) {
-		throw new DatabaseError('REMOVE PLAYER: Requested game does not exist')
+		throw new DatabaseError(
+			500,
+			'REMOVE PLAYER: Requested game does not exist'
+		)
 	}
 	game.players.splice(index, 1)
 	game.saveAll({ owner: true, players: true })
@@ -73,7 +81,7 @@ var updateState = async (id: string, isActive: boolean) => {
 	try {
 		var game = await GameModel.get(id).run()
 	} catch (err) {
-		throw new DatabaseError('UPDATE STATE: Game does not exist')
+		throw new DatabaseError(500, 'UPDATE STATE: Game does not exist')
 	}
 	game.isActive = isActive
 	game.save()
@@ -83,7 +91,7 @@ var updateDeck = async (id: string, deck: string[]) => {
 	try {
 		var game = await GameModel.get(id).run()
 	} catch (err) {
-		throw new DatabaseError('UPDATE DECK: Game does not exist')
+		throw new DatabaseError(500, 'UPDATE DECK: Game does not exist')
 	}
 	game.deck = deck
 	game.save()
@@ -93,7 +101,7 @@ var updateTurn = async (id: string, turn: number) => {
 	try {
 		var game = await GameModel.get(id).run()
 	} catch (err) {
-		throw new DatabaseError('UPDATE TURN: Game does not exist')
+		throw new DatabaseError(500, 'UPDATE TURN: Game does not exist')
 	}
 	game.currentTurn = turn
 	game.save()
@@ -103,7 +111,7 @@ var updatePile = async (id: string, pile: string[]) => {
 	try {
 		var game = await GameModel.get(id).run()
 	} catch (err) {
-		throw new DatabaseError('UPDATE PILE: Game does not exist')
+		throw new DatabaseError(500, 'UPDATE PILE: Game does not exist')
 	}
 	game.pile = pile
 	game.save()
@@ -113,7 +121,7 @@ var updateLogs = async (id: string, logs: string[]) => {
 	try {
 		var game = await GameModel.get(id).run()
 	} catch (err) {
-		throw new DatabaseError('UPDATE LOGS: Game does not exist')
+		throw new DatabaseError(500, 'UPDATE LOGS: Game does not exist')
 	}
 	game.logs = logs
 	game.save()
@@ -125,7 +133,7 @@ var getByCode = async (gameCode: string) => {
 			.getJoin({ players: true, owner: true })
 			.run()
 	} catch (err) {
-		throw new DatabaseError('GET GAME: Game does not exist')
+		throw new DatabaseError(500, 'GET GAME: Game does not exist')
 	}
 	return Game.fromModelObject(g[0])
 }
@@ -135,7 +143,7 @@ var destroy = async (id: string) => {
 		var g = await GameModel.get(id).run()
 		g.delete()
 	} catch (err) {
-		throw new DatabaseError('DESTROY GAME: Unable to delete')
+		throw new DatabaseError(500, 'DESTROY GAME: Unable to delete')
 	}
 }
 

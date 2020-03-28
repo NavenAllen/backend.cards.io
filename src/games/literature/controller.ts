@@ -96,10 +96,10 @@ var declareSet = async (
 	player: Player,
 	declaration: string[][]
 ) => {
-	let isPlayerEvenTeam = Number(player.position % 2 === 0)
+	let playerTeam = player.position % 2
 	let successfull = true
 	for (let i = 0; i < declaration.length; i++) {
-		let currentPos = 2 * i + isPlayerEvenTeam
+		let currentPos = 2 * (i + 1) - playerTeam
 		for (let j = 0; j < declaration[i].length; j++) {
 			let currentCard = declaration[i][j]
 			let cardHolder = game.findCardWithPlayer(currentCard)

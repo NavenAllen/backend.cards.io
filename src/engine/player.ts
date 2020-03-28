@@ -2,8 +2,10 @@ import { Card } from './index'
 import { PlayerService } from '../services'
 
 class PlayerError extends Error {
-	constructor(message: string) {
+	public code: number
+	constructor(code: number, message: string) {
 		super(message)
+		this.code = code
 		Object.setPrototypeOf(this, new.target.prototype)
 		this.name = PlayerError.name
 	}
@@ -124,7 +126,10 @@ export class Player {
 	discard = (card: string): Card => {
 		const index = this.getIndexOf(card)
 		if (index === -1) {
-			throw new PlayerError('DISCARD: Does not have the requested card')
+			throw new PlayerError(
+				403,
+				'DISCARD: Does not have the requested card'
+			)
 		} else {
 			let discarded = this._hand.splice(index, 1)[0]
 			PlayerService.updateHand(
