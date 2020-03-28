@@ -2,11 +2,11 @@ import { Card } from './index'
 import { PlayerService } from '../services'
 
 class PlayerError extends Error {
-    constructor(message: string) {
-        super(message);
-        Object.setPrototypeOf(this, new.target.prototype);
-        this.name = PlayerError.name;
-    }
+	constructor(message: string) {
+		super(message)
+		Object.setPrototypeOf(this, new.target.prototype)
+		this.name = PlayerError.name
+	}
 }
 
 export class Player {
@@ -16,7 +16,12 @@ export class Player {
 	private _score: number
 	private _databaseObjectId: string
 
-	constructor(name: string, position: number, hand: Card[] = [], score: number = 0) {
+	constructor(
+		name: string,
+		position: number,
+		hand: Card[] = [],
+		score: number = 0
+	) {
 		this._name = name
 		this._hand = hand
 		this._position = position
@@ -32,7 +37,12 @@ export class Player {
 	}
 
 	static fromModelObject = (obj: any): Player => {
-		let p = new Player(obj.name, obj.position, Card.fromStringArray(obj.hand), obj.score)
+		let p = new Player(
+			obj.name,
+			obj.position,
+			Card.fromStringArray(obj.hand),
+			obj.score
+		)
 		p.id = obj.id
 		return p
 	}
@@ -65,8 +75,12 @@ export class Player {
 
 	add = (card: Card): void => {
 		this._hand.push(card)
-		PlayerService.updateHand(this._databaseObjectId, this.getHand()).catch((err) => { throw err })
-	};
+		PlayerService.updateHand(this._databaseObjectId, this.getHand()).catch(
+			(err) => {
+				throw err
+			}
+		)
+	}
 
 	set position(position: number) {
 		this._position = position
@@ -74,12 +88,20 @@ export class Player {
 
 	set name(name: string) {
 		this._name = name
-		PlayerService.updateName(this._databaseObjectId, this._name).catch((err) => { throw err })
+		PlayerService.updateName(this._databaseObjectId, this._name).catch(
+			(err) => {
+				throw err
+			}
+		)
 	}
 
 	set score(score: number) {
 		this._score = score
-		PlayerService.updateScore(this._databaseObjectId, this._score).catch((err) => { throw err })
+		PlayerService.updateScore(this._databaseObjectId, this._score).catch(
+			(err) => {
+				throw err
+			}
+		)
 	}
 
 	set hand(hand: Card[]) {
@@ -104,8 +126,13 @@ export class Player {
 		if (index === -1) {
 			throw new PlayerError('DISCARD: Does not have the requested card')
 		} else {
-			let discarded = this._hand.splice(index, index + 1)[0]
-			PlayerService.updateHand(this._databaseObjectId, this.getHand()).catch((err) => { throw err })
+			let discarded = this._hand.splice(index, 1)[0]
+			PlayerService.updateHand(
+				this._databaseObjectId,
+				this.getHand()
+			).catch((err) => {
+				throw err
+			})
 			return discarded
 		}
 	}

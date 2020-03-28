@@ -6,11 +6,11 @@ import { cursorTo } from 'readline'
 const r = thinky.r
 
 class DatabaseError extends Error {
-    constructor(message: string) {
-        super(message);
-        Object.setPrototypeOf(this, new.target.prototype);
-        this.name = DatabaseError.name;
-    }
+	constructor(message: string) {
+		super(message)
+		Object.setPrototypeOf(this, new.target.prototype)
+		this.name = DatabaseError.name
+	}
 }
 
 var create = async (game: Game, owner: Player) => {
@@ -45,13 +45,28 @@ var create = async (game: Game, owner: Player) => {
 
 var addPlayer = async (gameId: string, playerId: string) => {
 	try {
-		var game = await GameModel.get(gameId).getJoin({players: true}).run()
+		var game = await GameModel.get(gameId).getJoin({ players: true }).run()
 		var player = await PlayerModel.get(playerId).run()
 	} catch (err) {
 		throw new DatabaseError('ADD PLAYER: Requested object does not exist')
 	}
 	game.players.push(player)
-	await game.saveAll({ owner: true, players: true })
+	game.saveAll({ owner: true, players: true })
+}
+
+var removePlayer = async (gameId: string, playerId: string) => {
+	try {
+		var game = await GameModel.get(gameId).getJoin({ players: true }).run()
+		var index = game.players.indexOf(
+			game.players.find((p) => {
+				return p.id === playerId
+			})
+		)
+	} catch (err) {
+		throw new DatabaseError('REMOVE PLAYER: Requested game does not exist')
+	}
+	game.players.splice(index, 1)
+	game.saveAll({ owner: true, players: true })
 }
 
 var updateState = async (id: string, isActive: boolean) => {
@@ -127,6 +142,7 @@ var setGameUpdatesCallback = (callback) => {
 export {
 	create,
 	addPlayer,
+	removePlayer,
 	getByCode,
 	updateState,
 	updateDeck,

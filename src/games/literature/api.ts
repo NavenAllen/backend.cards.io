@@ -25,20 +25,19 @@ var setGameData = (game: Game) => {
 }
 
 var onGameUpdate: Function = async (game: Game) => {
-	setGameData(game)
-	litNsp.to(game.code).emit('game-updates', game)
+	litNsp.to(game.code).emit('game-data', game)
 }
 
 var onPlayerUpdate = (player: Player) => {
 	let socketId = socketIDMap[player.id]
-	litNsp.to(socketId).emit('player-updates', player)
+	litNsp.to(socketId).emit('player-data', player)
 }
 
 var openSocketChannels = (): void => {
 	litNsp.on('connection', (socket) => {
 		socket.on('create', async (data) => {
 			let playerName = data.name
-			let playerPosition = data.position
+			let playerPosition = 1
 			let playerId = data.pid
 			let gameCode
 
@@ -63,6 +62,19 @@ var openSocketChannels = (): void => {
 			}
 		})
 
+		socket.on('probe', async (data) => {
+			let gameCode = data.gameCode
+
+			try {
+				let game = getGameData(gameCode)
+				let response = game.getSpots()
+
+				litNsp.to(socket.id).emit('game-probe', response)
+			} catch (err) {
+				litNsp.to(gameCode).emit('game-probe', err.message)
+			}
+		})
+
 		socket.on('join', async (data) => {
 			let gameCode = data.gameCode
 			let playerName = data.name
@@ -71,6 +83,8 @@ var openSocketChannels = (): void => {
 
 			try {
 				let game = getGameData(gameCode)
+
+				Validator.isPositionAvailable(game, playerPosition)
 				let player = await LiteratureController.registerPlayer(
 					playerId,
 					playerName,
@@ -85,6 +99,27 @@ var openSocketChannels = (): void => {
 				litNsp
 					.to(game.code)
 					.emit('game-updates', player.name + ' has joined the game')
+			} catch (err) {
+				litNsp.to(gameCode).emit('game-updates', err.message)
+			}
+		})
+
+		socket.on('leave', async (data) => {
+			let gameCode = data.gameCode
+			let playerId = data.pid
+
+			try {
+				let game = getGameData(gameCode)
+				let player = game.getPlayerById(playerId)
+				await LiteratureController.joinGame(game, player)
+
+				setGameData(game)
+				socket.leave(game.code)
+				socketIDMap[socket.id] = playerId
+
+				litNsp
+					.to(game.code)
+					.emit('game-updates', player.name + ' has left the game')
 			} catch (err) {
 				litNsp.to(gameCode).emit('game-updates', err.message)
 			}

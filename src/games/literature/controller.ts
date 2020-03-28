@@ -30,7 +30,14 @@ var hostGame = async (owner: Player) => {
 	const maxPlayers = 8
 	const isTeamGame = true
 
-	let g = await Game.build(gameType, deck, minPlayers, maxPlayers, isTeamGame, owner)
+	let g = await Game.build(
+		gameType,
+		deck,
+		minPlayers,
+		maxPlayers,
+		isTeamGame,
+		owner
+	)
 	g.log('CREATE:' + owner.name)
 	return g
 }
@@ -40,12 +47,17 @@ var joinGame = async (game: Game, player: Player) => {
 	game.log('JOIN:' + player.name)
 }
 
+var leaveGame = async (game: Game, player: Player) => {
+	await game.removePlayer(player)
+	game.log('LEAVE:' + player.name)
+}
+
 var startGame = async (game: Game) => {
 	game.prepareGame()
 	game.log('START')
 }
 
-var askForCard = async(game: Game, from: Player, to: Player, card: string) => {
+var askForCard = async (game: Game, from: Player, to: Player, card: string) => {
 	try {
 		from.add(to.discard(card))
 		game.log('TAKE:' + from.name + ':' + to.name + ':' + card)
@@ -93,4 +105,13 @@ var declareSet = async (
 		console.log(player.name + ' incorrectly declared the ' + 'SET')
 	}
 }
-export { registerPlayer, hostGame, joinGame, startGame, askForCard, transferTurn, declareSet }
+export {
+	registerPlayer,
+	hostGame,
+	joinGame,
+	leaveGame,
+	startGame,
+	askForCard,
+	transferTurn,
+	declareSet
+}
