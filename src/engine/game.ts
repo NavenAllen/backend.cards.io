@@ -275,7 +275,7 @@ export class Game {
 		})
 		available.map((n) => {
 			result.push({
-				name: 'Available',
+				name: '<Available>',
 				position: n
 			})
 		})

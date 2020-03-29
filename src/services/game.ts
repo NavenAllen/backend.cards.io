@@ -24,6 +24,7 @@ var create = async (game: Game, owner: Player) => {
 		currentTurn: game.currentTurn,
 		minPlayers: game.minPlayers,
 		maxPlayers: game.maxPlayers,
+		logs: game.logs,
 		isTeam: game.ifTeamGame,
 		isActive: game.ifActive
 	})
@@ -151,22 +152,27 @@ var setGameUpdatesCallback = (callback) => {
 	GameModel.changes().then((feed) => {
 		feed.each((err, doc) => {
 			if (err) throw err
-			let result: string[] = []
-			let count = 3
-			for (let i = doc.logs.length; i > -1; i--) {
-				if (
-					doc.logs[i].startsWith('ASK') ||
-					doc.logs[i].startsWith('TAKE')
-				) {
-					if (count > 0) {
-						result.push(doc.logs[i])
-						count--
+			GameModel.get(doc.id)
+				.getJoin({
+					players: {
+						_apply: function (seq) {
+							return seq.pluck({
+								position: true,
+								hand: true,
+								score: true
+							})
+						}
 					}
-				}
-				result.push(doc.logs[i])
-			}
-			doc.logs = result.reverse()
-			callback(doc)
+				})
+				.run()
+				.then((res) => {
+					res.players.forEach((element) => {
+						element.count = element.hand.length
+						delete element['hand']
+					})
+					console.log(res)
+					callback(res)
+				})
 		})
 	})
 }

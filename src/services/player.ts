@@ -15,7 +15,7 @@ var create = async (player: Player) => {
 	var playerObject = new PlayerModel({
 		name: player.name,
 		position: player.position,
-		hand: player.getHand(),
+		hand: player.hand,
 		score: player.score
 	})
 

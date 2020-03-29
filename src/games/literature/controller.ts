@@ -43,7 +43,7 @@ var hostGame = async (owner: Player) => {
 	}
 	g.isGameOver = function () {
 		for (let i = 0; i < this._players.length; i++) {
-			if (this._players[i].getHand().length > 0) return false
+			if (this._players[i].hand.length > 0) return false
 		}
 		return true
 	}

@@ -28,7 +28,27 @@ var removeGameData = (game: Game) => {
 	delete gameData[game.code]
 }
 
-var onGameUpdate: Function = async (game: any) => {
+var filterLogs = (game: any) => {
+	let result: string[] = []
+	let count = 3
+	for (let i = game.logs.length; i > 0; i--) {
+		if (
+			game.logs[i - 1].startsWith('ASK') ||
+			game.logs[i - 1].startsWith('TAKE')
+		) {
+			if (count > 0) {
+				result.push(game.logs[i])
+				count--
+			}
+		} else {
+			result.push(game.logs[i])
+		}
+	}
+	game.logs = result.reverse()
+}
+
+var onGameUpdate = (game: any) => {
+	filterLogs(game)
 	litNsp.to(game.code).emit('game-data', {
 		type: 'GAME',
 		data: game
@@ -130,7 +150,7 @@ var openSocketChannels = (): void => {
 				litNsp.to(socket.id).emit('game-updates', {
 					code: 200,
 					type: 'LIST',
-					list: response
+					data: response
 				})
 			} catch (err) {
 				litNsp.to(socket.id).emit('game-updates', {
