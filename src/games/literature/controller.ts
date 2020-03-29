@@ -12,6 +12,12 @@ var testLit = async () => {
 	hostedGame.prepareGame()
 }
 
+var handleReconnect = async (id: string) => {
+	let p = await PlayerService.getObjectById(id)
+	let g = await GameService.getById(p.gameId)
+	return { player: p, game: g }
+}
+
 var registerPlayer = async (id: string, name: string, pos: number) => {
 	try {
 		var player = await PlayerService.getById(id)
@@ -124,6 +130,7 @@ var declareSet = async (
 	game.processRound()
 }
 export {
+	handleReconnect,
 	registerPlayer,
 	hostGame,
 	joinGame,

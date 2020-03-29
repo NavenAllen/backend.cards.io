@@ -128,15 +128,29 @@ var updateLogs = async (id: string, logs: string[]) => {
 	game.save()
 }
 
-var getByCode = async (gameCode: string) => {
+var getById = async (id: string) => {
 	try {
-		var g = await GameModel.filter(r.row('code').eq(gameCode))
-			.getJoin({ players: true, owner: true })
-			.run()
+		var g = await GameModel.get(id)
+			.getJoin({
+				players: {
+					_apply: function (seq) {
+						return seq.pluck({
+							position: true,
+							hand: true,
+							score: true
+						})
+					}
+				}
+			})
+			.run()[0]
+		g.players.forEach((element) => {
+			element.count = element.hand.length
+			delete element['hand']
+		})
 	} catch (err) {
 		throw new DatabaseError(500, 'GET GAME: Game does not exist')
 	}
-	return Game.fromModelObject(g[0])
+	return g
 }
 
 var destroy = async (id: string) => {
@@ -170,7 +184,6 @@ var setGameUpdatesCallback = (callback) => {
 						element.count = element.hand.length
 						delete element['hand']
 					})
-					console.log(res)
 					callback(res)
 				})
 		})
@@ -181,7 +194,7 @@ export {
 	create,
 	addPlayer,
 	removePlayer,
-	getByCode,
+	getById,
 	updateState,
 	updateDeck,
 	updateTurn,

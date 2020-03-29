@@ -2,13 +2,13 @@ import express from 'express'
 import * as LiteratureController from './controller'
 import * as LiteratureValidator from './validator'
 import * as Validator from '../../util/validator'
-import { Game, Player } from '../../engine'
+import { Game } from '../../engine'
 import { GameService, PlayerService } from '../../services'
 
 let router = express.Router()
-let litNsp,
-	gameData = {},
-	socketIDMap = {}
+let litNsp
+let gameMap = new Map()
+let socketMap = new Map()
 
 var setupLiteratureGame = async (litNspObject) => {
 	litNsp = litNspObject
@@ -17,15 +17,15 @@ var setupLiteratureGame = async (litNspObject) => {
 }
 
 var getGameData = (gameCode: string): Game => {
-	return gameData[gameCode]
+	return gameMap.get(gameCode)
 }
 
 var setGameData = (game: Game) => {
-	gameData[game.code] = game
+	gameMap.set(game.code, game)
 }
 
 var removeGameData = (game: Game) => {
-	delete gameData[game.code]
+	gameMap.delete(game.code)
 }
 
 var filterLogs = (game: any) => {
@@ -56,7 +56,7 @@ var onGameUpdate = (game: any) => {
 }
 
 var onPlayerUpdate = (player: any) => {
-	let socketId = socketIDMap[player.id]
+	let socketId = socketMap.get(player.id)
 	litNsp.to(socketId).emit('player-data', {
 		type: 'PLAYER',
 		data: player
@@ -65,6 +65,38 @@ var onPlayerUpdate = (player: any) => {
 
 var openSocketChannels = (): void => {
 	litNsp.on('connection', (socket) => {
+		let pid = socket.handshake.query.pid
+		if (pid) {
+			if (socketMap.has(pid)) {
+				litNsp.to(socket.id).emit('game-updates', {
+					type: 'CONNECT',
+					code: 403,
+					name: 'SessionError',
+					message: 'Another session is already active'
+				})
+			} else {
+				LiteratureController.handleReconnect(pid)
+					.then((response) => {
+						socketMap.set(pid, socket.id)
+						socket.join(response.game.code)
+						filterLogs(response.game)
+						litNsp.to(socket.id).emit('game-updates', {
+							type: 'CONNECT',
+							game: response.game,
+							player: response.player
+						})
+					})
+					.catch((err) => {
+						litNsp.to(socket.id).emit('game-updates', {
+							type: 'CONNECT',
+							code: 400,
+							name: err.name,
+							message: err.message
+						})
+					})
+			}
+		}
+
 		socket.on('create', async (data) => {
 			let playerName = data.name
 			let playerPosition = 1
@@ -80,7 +112,7 @@ var openSocketChannels = (): void => {
 
 				setGameData(game)
 				socket.join(game.code)
-				socketIDMap[socket.id] = playerId
+				socketMap.set(playerId, socket.id)
 
 				litNsp.to(socket.id).emit('game-updates', {
 					code: 200,
@@ -136,9 +168,8 @@ var openSocketChannels = (): void => {
 				)
 				await LiteratureController.joinGame(game, player)
 
-				setGameData(game)
 				socket.join(game.code)
-				socketIDMap[socket.id] = playerId
+				socketMap.set(playerId, socket.id)
 
 				litNsp.to(game.code).emit('game-updates', {
 					code: 200,
@@ -150,6 +181,7 @@ var openSocketChannels = (): void => {
 				litNsp.to(socket.id).emit('game-updates', {
 					code: 200,
 					type: 'LIST',
+					pid: player.id,
 					data: response
 				})
 			} catch (err) {
@@ -169,11 +201,9 @@ var openSocketChannels = (): void => {
 			try {
 				let game = getGameData(gameCode)
 				let player = game.getPlayerById(playerId)
-				await LiteratureController.joinGame(game, player)
+				await LiteratureController.leaveGame(game, player)
 
-				setGameData(game)
 				socket.leave(game.code)
-				socketIDMap[socket.id] = playerId
 
 				litNsp.to(game.code).emit('game-updates', {
 					code: 200,
@@ -219,7 +249,6 @@ var openSocketChannels = (): void => {
 				Validator.isOwner(game, player)
 				LiteratureController.startGame(game)
 
-				setGameData(game)
 				litNsp
 					.to(gameCode)
 					.emit('game-updates', { code: 200, type: 'START' })
@@ -310,6 +339,15 @@ var openSocketChannels = (): void => {
 					name: err.name,
 					message: err.message
 				})
+			}
+		})
+
+		socket.on('disconnect', (reason) => {
+			console.log('Socket[' + socket.id + '] disconnected: ' + reason)
+			for (let [key, value] of socketMap.entries()) {
+				if (value === socket.id) {
+					socketMap.delete(key)
+				}
 			}
 		})
 	})

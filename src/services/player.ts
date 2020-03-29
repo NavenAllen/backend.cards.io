@@ -57,6 +57,15 @@ var updateHand = async (id: string, hand: string[]) => {
 	player.save()
 }
 
+var getObjectById = async (id: string) => {
+	try {
+		var p = await PlayerModel.get(id).run()
+	} catch (err) {
+		throw new DatabaseError(500, 'UPDATE: Player does not exist')
+	}
+	return p
+}
+
 var getById = async (id: string): Promise<Player> => {
 	try {
 		var p = await PlayerModel.get(id).getJoin({ game: true }).run()
@@ -69,6 +78,7 @@ var getById = async (id: string): Promise<Player> => {
 var setPlayerUpdatesCallback = (callback) => {
 	PlayerModel.changes().then((feed) => {
 		feed.each((err, doc) => {
+			if (err) throw err
 			callback(doc)
 		})
 	})
@@ -76,6 +86,7 @@ var setPlayerUpdatesCallback = (callback) => {
 
 export {
 	create,
+	getObjectById,
 	getById,
 	updateName,
 	updateHand,
