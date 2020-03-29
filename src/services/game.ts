@@ -151,6 +151,21 @@ var setGameUpdatesCallback = (callback) => {
 	GameModel.changes().then((feed) => {
 		feed.each((err, doc) => {
 			if (err) throw err
+			let result: string[] = []
+			let count = 3
+			for (let i = doc.logs.length; i > -1; i--) {
+				if (
+					doc.logs[i].startsWith('ASK') ||
+					doc.logs[i].startsWith('TAKE')
+				) {
+					if (count > 0) {
+						result.push(doc.logs[i])
+						count--
+					}
+				}
+				result.push(doc.logs[i])
+			}
+			doc.logs = result.reverse()
 			callback(doc)
 		})
 	})

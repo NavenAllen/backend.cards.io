@@ -28,14 +28,14 @@ var removeGameData = (game: Game) => {
 	delete gameData[game.code]
 }
 
-var onGameUpdate: Function = async (game: Game) => {
+var onGameUpdate: Function = async (game: any) => {
 	litNsp.to(game.code).emit('game-data', {
 		type: 'GAME',
 		data: game
 	})
 }
 
-var onPlayerUpdate = (player: Player) => {
+var onPlayerUpdate = (player: any) => {
 	let socketId = socketIDMap[player.id]
 	litNsp.to(socketId).emit('player-data', {
 		type: 'PLAYER',
@@ -49,7 +49,6 @@ var openSocketChannels = (): void => {
 			let playerName = data.name
 			let playerPosition = 1
 			let playerId = data.pid
-			let gameCode
 
 			try {
 				let player = await LiteratureController.registerPlayer(
@@ -58,13 +57,13 @@ var openSocketChannels = (): void => {
 					playerPosition
 				)
 				let game = await LiteratureController.hostGame(player)
-				gameCode = game.code
 
 				setGameData(game)
 				socket.join(game.code)
 				socketIDMap[socket.id] = playerId
 
 				litNsp.to(socket.id).emit('game-updates', {
+					code: 200,
 					type: 'CREATE',
 					gcode: game.code,
 					pid: player.id,
@@ -72,6 +71,7 @@ var openSocketChannels = (): void => {
 				})
 			} catch (err) {
 				litNsp.to(socket.id).emit('game-updates', {
+					type: 'CREATE',
 					code: err.code,
 					name: err.name,
 					message: err.message
@@ -86,7 +86,10 @@ var openSocketChannels = (): void => {
 				let game = getGameData(gameCode)
 				let response = game.getSpots()
 
-				litNsp.to(socket.id).emit('game-probe', response)
+				litNsp.to(socket.id).emit('game-probe', {
+					code: 200,
+					data: response
+				})
 			} catch (err) {
 				litNsp.to(socket.id).emit('game-probe', {
 					code: err.code,
@@ -118,12 +121,20 @@ var openSocketChannels = (): void => {
 				socketIDMap[socket.id] = playerId
 
 				litNsp.to(game.code).emit('game-updates', {
+					code: 200,
 					type: 'JOIN',
 					pname: player.name,
 					position: player.position
 				})
+				let response = game.getSpots()
+				litNsp.to(socket.id).emit('game-updates', {
+					code: 200,
+					type: 'LIST',
+					list: response
+				})
 			} catch (err) {
-				litNsp.to(gameCode).emit('game-updates', {
+				litNsp.to(socket.id).emit('game-updates', {
+					type: 'JOIN',
 					code: err.code,
 					name: err.name,
 					message: err.message
@@ -145,12 +156,14 @@ var openSocketChannels = (): void => {
 				socketIDMap[socket.id] = playerId
 
 				litNsp.to(game.code).emit('game-updates', {
+					code: 200,
 					type: 'LEAVE',
 					pname: player.name,
 					position: player.position
 				})
 			} catch (err) {
-				litNsp.to(gameCode).emit('game-updates', {
+				litNsp.to(socket.id).emit('game-updates', {
+					type: 'LEAVE',
 					code: err.code,
 					name: err.name,
 					message: err.message
@@ -187,11 +200,12 @@ var openSocketChannels = (): void => {
 				LiteratureController.startGame(game)
 
 				setGameData(game)
-				litNsp.to(gameCode).emit('game-updates', {
-					type: 'START'
-				})
+				litNsp
+					.to(gameCode)
+					.emit('game-updates', { code: 200, type: 'START' })
 			} catch (err) {
-				litNsp.to(gameCode).emit('game-updates', {
+				litNsp.to(socket.id).emit('game-updates', {
+					type: 'START',
 					code: err.code,
 					name: err.name,
 					message: err.message
@@ -216,7 +230,9 @@ var openSocketChannels = (): void => {
 					toPlayer,
 					card
 				)
-				litNsp.to(socket.id).emit('play-ask', { type: 'ASK' })
+				litNsp
+					.to(socket.id)
+					.emit('play-ask', { code: 200, type: 'ASK' })
 			} catch (err) {
 				litNsp.to(socket.id).emit('play-ask', {
 					code: err.code,
@@ -236,8 +252,11 @@ var openSocketChannels = (): void => {
 				let from = game.getPlayerById(playerId)
 
 				Validator.isMyTurn(game, from)
-				LiteratureController.declareSet(game, from, declaration)
-				litNsp.to(socket.id).emit('play-declare', { type: 'DECLARE' })
+				let set = LiteratureValidator.checkSameSet(declaration)
+				LiteratureController.declareSet(game, from, set, declaration)
+				litNsp
+					.to(socket.id)
+					.emit('play-declare', { code: 200, type: 'DECLARE' })
 			} catch (err) {
 				litNsp.to(socket.id).emit('play-declare', {
 					code: err.code,
@@ -262,7 +281,9 @@ var openSocketChannels = (): void => {
 				Validator.areSameTeam(from, to)
 				LiteratureValidator.didJustDeclare(game)
 				LiteratureController.transferTurn(game, from, to)
-				litNsp.to(socket.id).emit('play-transfer', { type: 'TRANSFER' })
+				litNsp
+					.to(socket.id)
+					.emit('play-transfer', { code: 200, type: 'TRANSFER' })
 			} catch (err) {
 				litNsp.to(socket.id).emit('play-transfer', {
 					code: err.code,

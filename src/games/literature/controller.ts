@@ -94,6 +94,7 @@ var transferTurn = async (game: Game, from: Player, to: Player) => {
 var declareSet = async (
 	game: Game,
 	player: Player,
+	set: string,
 	declaration: string[][]
 ) => {
 	let playerTeam = player.position % 2
@@ -111,14 +112,14 @@ var declareSet = async (
 	}
 	if (successfull) {
 		player.score += 1
-		game.log('DECLARE:' + player.name + ':' + 'SET')
-		console.log(player.name + ' correctly declared the ' + 'SET')
+		game.log('DECLARE:' + player.name + ':' + set)
+		console.log(player.name + ' correctly declared the ' + set)
 	} else {
 		let opponent = (player.position + 1) % game.players.length
 		game.players[opponent].score += 1
 		game.currentTurn = opponent
-		game.log('DECLARE:' + game.players[opponent].name + ':' + 'SET')
-		console.log(player.name + ' incorrectly declared the ' + 'SET')
+		game.log('DECLARE:' + game.players[opponent].name + ':' + set)
+		console.log(player.name + ' incorrectly declared the ' + set)
 	}
 	game.processRound()
 }
