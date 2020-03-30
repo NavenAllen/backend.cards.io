@@ -267,7 +267,8 @@ export class Game {
 	getSpots = (): Object[] => {
 		let available = [...Array(this._maxPlayers).keys()].map((i) => i + 1)
 		let result = this._players.map((p) => {
-			available.splice(p.position - 1, 1)
+			let index = available.indexOf(p.position)
+			if (index !== -1) available.splice(index, 1)
 			return {
 				name: p.name,
 				position: p.position

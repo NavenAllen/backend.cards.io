@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "main": "literature.js",
   "scripts": {
-    "start": "tsc && node ./dist/app.js",
+    "start": "tsc && nodemon ./dist/app.js",
     "lint:fix": "npx eslint --ext .ts --fix",
     "lint": "tsc --noEmit && eslint '*/**/*.ts' --quiet --fix",
     "format": "prettier --write 'src/**/*.{ts,tsx}'",
@@ -27,6 +27,16 @@
     "hooks": {
       "pre-commit": "lint-staged"
     }
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "**/*.test.ts",
+      "**/*.spec.ts",
+      ".git",
+      "node_modules"
+      ],
+      "watch": [ "src" ],
+      "ext": "ts"
   },
   "lint-staged": {
     "*.ts": [

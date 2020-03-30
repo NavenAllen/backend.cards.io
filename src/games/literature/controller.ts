@@ -55,6 +55,20 @@ var hostGame = async (owner: Player) => {
 	}
 	g.processRound = function () {
 		if (this._isGameOver()) this.end()
+		else {
+			let isEvenDone = true,
+				isOddDone = true
+			for (let i = 0; i < this._players.length; i++) {
+				let current = this._players[i]
+				if (current.position % 2 == 0) {
+					isEvenDone = isEvenDone && current.hand.length === 0
+				} else {
+					isOddDone = isOddDone && current.hand.length === 0
+				}
+			}
+			if (isEvenDone) this.currentTurn = 1
+			else if (isOddDone) this.currentTurn = 2
+		}
 	}
 	g.log('CREATE:' + owner.name)
 	return g
