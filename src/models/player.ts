@@ -10,7 +10,7 @@ var Player = thinky.createModel('player', {
 	hand: [type.string()],
 	score: type.number(),
 	gameId: type.string(),
-	createdAt: type.date().default(thinky.r.now())
+	createdAt: type.date()
 })
 
 // Ensure that an index createdAt exists

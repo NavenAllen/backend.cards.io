@@ -28,6 +28,11 @@ const isOwner = (game: Game, player: Player) => {
 		)
 }
 
+const isNotOwner = (game: Game, player: Player) => {
+	if (game.owner.id === player.id)
+		throw new ValidationError(401, 'INVALID: You are the owner of the game')
+}
+
 const isPositionAvailable = (game: Game, position: number) => {
 	if (
 		game.players.find((p) => {
@@ -37,4 +42,4 @@ const isPositionAvailable = (game: Game, position: number) => {
 		throw new ValidationError(400, 'INVALID: The position is already taken')
 }
 
-export { isMyTurn, areSameTeam, isOwner, isPositionAvailable }
+export { isMyTurn, areSameTeam, isOwner, isPositionAvailable, isNotOwner }

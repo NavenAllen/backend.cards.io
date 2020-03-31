@@ -1,5 +1,6 @@
 import { Player } from '../engine'
 import { PlayerModel } from '../models'
+import { createDeflate } from 'zlib'
 
 class DatabaseError extends Error {
 	public code: number
@@ -11,12 +12,13 @@ class DatabaseError extends Error {
 	}
 }
 
-var create = async (player: Player) => {
+var create = async (player: Player, createdAt: Date) => {
 	var playerObject = new PlayerModel({
 		name: player.name,
 		position: player.position,
 		hand: player.hand,
-		score: player.score
+		score: player.score,
+		createdAt: createdAt
 	})
 
 	try {
@@ -27,13 +29,14 @@ var create = async (player: Player) => {
 	return player
 }
 
-var updateName = async (id: string, name: string) => {
+var updateDetails = async (id: string, name: string, pos: number) => {
 	try {
 		var player = await PlayerModel.get(id).run()
 	} catch (err) {
 		throw new DatabaseError(500, 'UPDATE: Player does not exist')
 	}
 	player.name = name
+	player.position = pos
 	player.save()
 }
 
@@ -88,7 +91,7 @@ export {
 	create,
 	getObjectById,
 	getById,
-	updateName,
+	updateDetails,
 	updateHand,
 	updateScore,
 	setPlayerUpdatesCallback

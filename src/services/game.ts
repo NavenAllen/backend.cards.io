@@ -15,7 +15,7 @@ class DatabaseError extends Error {
 	}
 }
 
-var create = async (game: Game, owner: Player) => {
+var create = async (game: Game, owner: Player, createdAt: Date) => {
 	var gameObject = new GameModel({
 		type: game.type,
 		code: game.code,
@@ -26,7 +26,8 @@ var create = async (game: Game, owner: Player) => {
 		maxPlayers: game.maxPlayers,
 		logs: game.logs,
 		isTeam: game.ifTeamGame,
-		isActive: game.ifActive
+		isActive: game.ifActive,
+		createdAt: createdAt
 	})
 	try {
 		var player = await PlayerModel.get(owner.id).run()
@@ -57,7 +58,7 @@ var addPlayer = async (gameId: string, playerId: string) => {
 		)
 	}
 	game.players.push(player)
-	game.saveAll({ owner: true, players: true })
+	game.saveAll({ players: true })
 }
 
 var removePlayer = async (gameId: string, playerId: string) => {
@@ -75,7 +76,24 @@ var removePlayer = async (gameId: string, playerId: string) => {
 		)
 	}
 	game.players.splice(index, 1)
-	game.saveAll({ owner: true, players: true })
+	game.saveAll({ players: true })
+}
+
+var startGame = async (
+	id: string,
+	isActive: boolean,
+	deck: string[],
+	turn: number
+) => {
+	try {
+		var game = await GameModel.get(id).run()
+	} catch (err) {
+		throw new DatabaseError(500, 'START GAME: Game does not exist')
+	}
+	game.deck = deck
+	game.isActive = isActive
+	game.currentTurn = turn
+	game.save()
 }
 
 var updateState = async (id: string, isActive: boolean) => {
@@ -85,16 +103,6 @@ var updateState = async (id: string, isActive: boolean) => {
 		throw new DatabaseError(500, 'UPDATE STATE: Game does not exist')
 	}
 	game.isActive = isActive
-	game.save()
-}
-
-var updateDeck = async (id: string, deck: string[]) => {
-	try {
-		var game = await GameModel.get(id).run()
-	} catch (err) {
-		throw new DatabaseError(500, 'UPDATE DECK: Game does not exist')
-	}
-	game.deck = deck
 	game.save()
 }
 
@@ -178,6 +186,13 @@ var setGameUpdatesCallback = (callback) => {
 						}
 					}
 				})
+				.pluck({
+					isActive: true,
+					logs: true,
+					players: true,
+					currentTurn: true,
+					code: true
+				})
 				.run()
 				.then((res) => {
 					res.players.forEach((element) => {
@@ -195,8 +210,8 @@ export {
 	addPlayer,
 	removePlayer,
 	getById,
+	startGame,
 	updateState,
-	updateDeck,
 	updateTurn,
 	updatePile,
 	updateLogs,

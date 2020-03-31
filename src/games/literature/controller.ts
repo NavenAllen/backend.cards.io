@@ -21,8 +21,7 @@ var handleReconnect = async (id: string) => {
 var registerPlayer = async (id: string, name: string, pos: number) => {
 	try {
 		var player = await PlayerService.getById(id)
-		player.name = name
-		player.position = pos
+		player.updateDetails(name, pos)
 	} catch (err) {
 		player = await Player.build(name, pos)
 	}
@@ -117,6 +116,7 @@ var declareSet = async (
 	set: string,
 	declaration: string[][]
 ) => {
+	game.log('ATTEMPT:' + player.name + ':' + set)
 	let playerTeam = player.position % 2
 	let successfull = true
 	for (let i = 0; i < declaration.length; i++) {

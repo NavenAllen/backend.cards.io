@@ -15,7 +15,7 @@ var Game = thinky.createModel('game', {
 	isTeam: type.boolean(),
 	isActive: type.boolean(),
 	logs: [type.string()],
-	createdAt: type.date().default(thinky.r.now())
+	createdAt: type.date()
 })
 
 // Ensure that an index createdAt exists

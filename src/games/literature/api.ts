@@ -6,12 +6,12 @@ import { Game } from '../../engine'
 import { GameService, PlayerService } from '../../services'
 
 let router = express.Router()
-let litNsp
+let LiteratureNamespace
 let gameMap = new Map()
 let socketMap = new Map()
 
-var setupLiteratureGame = async (litNspObject) => {
-	litNsp = litNspObject
+var setupLiteratureGame = async (NamespaceObject) => {
+	LiteratureNamespace = NamespaceObject
 	openSocketChannels()
 	setUpdateEventListeners()
 }
@@ -37,11 +37,11 @@ var filterLogs = (game: any) => {
 			game.logs[i - 1].startsWith('TAKE')
 		) {
 			if (count > 0) {
-				result.push(game.logs[i])
+				result.push(game.logs[i - 1])
 				count--
 			}
 		} else {
-			result.push(game.logs[i])
+			result.push(game.logs[i - 1])
 		}
 	}
 	game.logs = result.reverse()
@@ -49,7 +49,7 @@ var filterLogs = (game: any) => {
 
 var onGameUpdate = (game: any) => {
 	filterLogs(game)
-	litNsp.to(game.code).emit('game-data', {
+	LiteratureNamespace.to(game.code).emit('game-data', {
 		type: 'GAME',
 		data: game
 	})
@@ -57,18 +57,18 @@ var onGameUpdate = (game: any) => {
 
 var onPlayerUpdate = (player: any) => {
 	let socketId = socketMap.get(player.id)
-	litNsp.to(socketId).emit('player-data', {
+	LiteratureNamespace.to(socketId).emit('player-data', {
 		type: 'PLAYER',
 		data: player
 	})
 }
 
 var openSocketChannels = (): void => {
-	litNsp.on('connection', (socket) => {
+	LiteratureNamespace.on('connection', (socket) => {
 		let pid = socket.handshake.query.pid
 		if (pid) {
 			if (socketMap.has(pid)) {
-				litNsp.to(socket.id).emit('game-updates', {
+				LiteratureNamespace.to(socket.id).emit('game-updates', {
 					type: 'CONNECT',
 					code: 403,
 					name: 'SessionError',
@@ -80,14 +80,14 @@ var openSocketChannels = (): void => {
 						socketMap.set(pid, socket.id)
 						socket.join(response.game.code)
 						filterLogs(response.game)
-						litNsp.to(socket.id).emit('game-updates', {
+						LiteratureNamespace.to(socket.id).emit('game-updates', {
 							type: 'CONNECT',
 							game: response.game,
 							player: response.player
 						})
 					})
 					.catch((err) => {
-						litNsp.to(socket.id).emit('game-updates', {
+						LiteratureNamespace.to(socket.id).emit('game-updates', {
 							type: 'CONNECT',
 							code: 400,
 							name: err.name,
@@ -112,9 +112,9 @@ var openSocketChannels = (): void => {
 
 				setGameData(game)
 				socket.join(game.code)
-				socketMap.set(playerId, socket.id)
+				socketMap.set(player.id, socket.id)
 
-				litNsp.to(socket.id).emit('game-updates', {
+				LiteratureNamespace.to(socket.id).emit('game-updates', {
 					code: 200,
 					type: 'CREATE',
 					gcode: game.code,
@@ -122,7 +122,7 @@ var openSocketChannels = (): void => {
 					pname: player.name
 				})
 			} catch (err) {
-				litNsp.to(socket.id).emit('game-updates', {
+				LiteratureNamespace.to(socket.id).emit('game-updates', {
 					type: 'CREATE',
 					code: err.code,
 					name: err.name,
@@ -138,12 +138,12 @@ var openSocketChannels = (): void => {
 				let game = getGameData(gameCode)
 				let response = game.getSpots()
 
-				litNsp.to(socket.id).emit('game-probe', {
+				LiteratureNamespace.to(socket.id).emit('game-probe', {
 					code: 200,
 					data: response
 				})
 			} catch (err) {
-				litNsp.to(socket.id).emit('game-probe', {
+				LiteratureNamespace.to(socket.id).emit('game-probe', {
 					code: err.code,
 					name: err.name,
 					message: err.message
@@ -169,23 +169,23 @@ var openSocketChannels = (): void => {
 				await LiteratureController.joinGame(game, player)
 
 				socket.join(game.code)
-				socketMap.set(playerId, socket.id)
+				socketMap.set(player.id, socket.id)
 
-				litNsp.to(game.code).emit('game-updates', {
+				LiteratureNamespace.to(game.code).emit('game-updates', {
 					code: 200,
 					type: 'JOIN',
 					pname: player.name,
 					position: player.position
 				})
 				let response = game.getSpots()
-				litNsp.to(socket.id).emit('game-updates', {
+				LiteratureNamespace.to(socket.id).emit('game-updates', {
 					code: 200,
 					type: 'LIST',
 					pid: player.id,
 					data: response
 				})
 			} catch (err) {
-				litNsp.to(socket.id).emit('game-updates', {
+				LiteratureNamespace.to(socket.id).emit('game-updates', {
 					type: 'JOIN',
 					code: err.code,
 					name: err.name,
@@ -203,16 +203,17 @@ var openSocketChannels = (): void => {
 				let player = game.getPlayerById(playerId)
 				await LiteratureController.leaveGame(game, player)
 
+				Validator.isNotOwner(game, player)
 				socket.leave(game.code)
 
-				litNsp.to(game.code).emit('game-updates', {
+				LiteratureNamespace.to(game.code).emit('game-updates', {
 					code: 200,
 					type: 'LEAVE',
 					pname: player.name,
 					position: player.position
 				})
 			} catch (err) {
-				litNsp.to(socket.id).emit('game-updates', {
+				LiteratureNamespace.to(socket.id).emit('game-updates', {
 					type: 'LEAVE',
 					code: err.code,
 					name: err.name,
@@ -249,11 +250,12 @@ var openSocketChannels = (): void => {
 				Validator.isOwner(game, player)
 				LiteratureController.startGame(game)
 
-				litNsp
-					.to(gameCode)
-					.emit('game-updates', { code: 200, type: 'START' })
+				LiteratureNamespace.to(gameCode).emit('game-updates', {
+					code: 200,
+					type: 'START'
+				})
 			} catch (err) {
-				litNsp.to(socket.id).emit('game-updates', {
+				LiteratureNamespace.to(socket.id).emit('game-updates', {
 					type: 'START',
 					code: err.code,
 					name: err.name,
@@ -279,11 +281,12 @@ var openSocketChannels = (): void => {
 					toPlayer,
 					card
 				)
-				litNsp
-					.to(socket.id)
-					.emit('play-ask', { code: 200, type: 'ASK' })
+				LiteratureNamespace.to(socket.id).emit('play-ask', {
+					code: 200,
+					type: 'ASK'
+				})
 			} catch (err) {
-				litNsp.to(socket.id).emit('play-ask', {
+				LiteratureNamespace.to(socket.id).emit('play-ask', {
 					code: err.code,
 					name: err.name,
 					message: err.message
@@ -303,11 +306,12 @@ var openSocketChannels = (): void => {
 				Validator.isMyTurn(game, from)
 				let set = LiteratureValidator.checkSameSet(declaration)
 				LiteratureController.declareSet(game, from, set, declaration)
-				litNsp
-					.to(socket.id)
-					.emit('play-declare', { code: 200, type: 'DECLARE' })
+				LiteratureNamespace.to(socket.id).emit('play-declare', {
+					code: 200,
+					type: 'DECLARE'
+				})
 			} catch (err) {
-				litNsp.to(socket.id).emit('play-declare', {
+				LiteratureNamespace.to(socket.id).emit('play-declare', {
 					code: err.code,
 					name: err.name,
 					message: err.message
@@ -330,11 +334,12 @@ var openSocketChannels = (): void => {
 				Validator.areSameTeam(from, to)
 				LiteratureValidator.didJustDeclare(game)
 				LiteratureController.transferTurn(game, from, to)
-				litNsp
-					.to(socket.id)
-					.emit('play-transfer', { code: 200, type: 'TRANSFER' })
+				LiteratureNamespace.to(socket.id).emit('play-transfer', {
+					code: 200,
+					type: 'TRANSFER'
+				})
 			} catch (err) {
-				litNsp.to(socket.id).emit('play-transfer', {
+				LiteratureNamespace.to(socket.id).emit('play-transfer', {
 					code: err.code,
 					name: err.name,
 					message: err.message

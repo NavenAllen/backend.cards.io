@@ -57,10 +57,10 @@ export class Game {
 		owner: Player
 	) => {
 		var g = new Game(type, deck, minPlayers, maxPlayers, isTeamGame)
-		await GameService.create(g, owner).then((game) => {
+		await GameService.create(g, owner, new Date()).then(async (game) => {
 			g._databaseObjectId = game.id
 			g._owner = owner
-			g.addPlayer(owner)
+			await g.addPlayer(owner)
 		})
 		return g
 	}
@@ -216,6 +216,8 @@ export class Game {
 	}
 
 	end = async () => {
+		this._isActive = false
+		GameService.updateState(this._databaseObjectId, this._isActive)
 		if (this._isTeamGame) {
 			let aScore = 0,
 				bScore = 0
@@ -237,12 +239,6 @@ export class Game {
 			let winner = this._players[0]
 			this.log('WINNER:' + winner.name)
 		}
-		this._isActive = false
-		GameService.updateState(this._databaseObjectId, this._isActive).catch(
-			(err) => {
-				throw err
-			}
-		)
 	}
 
 	destroy = () => {
@@ -256,11 +252,7 @@ export class Game {
 			throw new GameError(403, 'JOIN: Player limit reached')
 		} else {
 			this._players.push(newPlayer)
-			GameService.addPlayer(this._databaseObjectId, newPlayer.id).catch(
-				(err) => {
-					throw err
-				}
-			)
+			await GameService.addPlayer(this._databaseObjectId, newPlayer.id)
 		}
 	}
 
@@ -330,22 +322,15 @@ export class Game {
 			})
 
 		this._isActive = true
-		GameService.updateState(this._databaseObjectId, this._isActive).catch(
-			(err) => {
-				throw err
-			}
-		)
-		GameService.updateDeck(this._databaseObjectId, this._deck.cards).catch(
-			(err) => {
-				throw err
-			}
-		)
 		this._decideStarter()
-		GameService.updateTurn(this._databaseObjectId, this._currentTurn).catch(
-			(err) => {
-				throw err
-			}
-		)
+		GameService.startGame(
+			this._databaseObjectId,
+			this._isActive,
+			this._deck.cards,
+			this._currentTurn
+		).catch((err) => {
+			throw err
+		})
 	}
 
 	randomString = (len): string => {

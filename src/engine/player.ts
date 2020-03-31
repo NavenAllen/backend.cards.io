@@ -31,7 +31,7 @@ export class Player {
 
 	static async build(name: string, pos: number) {
 		var p = new Player(name, pos)
-		await PlayerService.create(p).then((player) => {
+		await PlayerService.create(p, new Date()).then((player) => {
 			p._databaseObjectId = player.id
 		})
 		return p
@@ -63,26 +63,12 @@ export class Player {
 		return this._hand
 	}
 
-	add = (card: string): void => {
-		this._hand.push(card)
-		PlayerService.updateHand(this._databaseObjectId, this._hand).catch(
-			(err) => {
-				throw err
-			}
-		)
-	}
-
 	set position(position: number) {
 		this._position = position
 	}
 
 	set name(name: string) {
 		this._name = name
-		PlayerService.updateName(this._databaseObjectId, this._name).catch(
-			(err) => {
-				throw err
-			}
-		)
 	}
 
 	set score(score: number) {
@@ -102,6 +88,18 @@ export class Player {
 		this._databaseObjectId = objectId
 	}
 
+	updateDetails = (name: string, pos: number) => {
+		this._name = name
+		this._position = pos
+		PlayerService.updateDetails(
+			this._databaseObjectId,
+			this._name,
+			this._position
+		).catch((err) => {
+			throw err
+		})
+	}
+
 	getIndexOf = (card: string): number => {
 		for (let i = 0; i < this._hand.length; i++) {
 			if (this._hand[i] === card) {
@@ -109,6 +107,15 @@ export class Player {
 			}
 		}
 		return -1
+	}
+
+	add = (card: string): void => {
+		this._hand.push(card)
+		PlayerService.updateHand(this._databaseObjectId, this._hand).catch(
+			(err) => {
+				throw err
+			}
+		)
 	}
 
 	discard = (card: string): string => {

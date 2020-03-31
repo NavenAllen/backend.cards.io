@@ -41,8 +41,8 @@ async.waterfall(
 			callback()
 		},
 		async () => {
-			var litNsp = await io.of('/literature')
-			setupLiteratureGame(litNsp)
+			var namespace = await io.of('/literature')
+			setupLiteratureGame(namespace)
 			server.listen(port)
 		}
 	],
