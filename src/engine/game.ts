@@ -58,7 +58,7 @@ export class Game {
 	) => {
 		var g = new Game(type, deck, minPlayers, maxPlayers, isTeamGame)
 		await GameService.create(g, owner, new Date()).then(async (game) => {
-			g._databaseObjectId = game.id
+			g._databaseObjectId = game._id.toString()
 			g._owner = owner
 			await g.addPlayer(owner)
 		})
@@ -207,11 +207,9 @@ export class Game {
 		} else {
 			let index = this._players.indexOf(this.getPlayerById(player.id))
 			this._players.splice(index, 1)
-			GameService.removePlayer(this._databaseObjectId, player.id).catch(
-				(err) => {
-					throw err
-				}
-			)
+			GameService.removePlayer(player.id).catch((err) => {
+				throw err
+			})
 		}
 	}
 

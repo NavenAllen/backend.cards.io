@@ -1,19 +1,25 @@
-import { thinky } from '../util/thinky'
+import mongoose from 'mongoose'
 
-var type = thinky.type
+let Schema = mongoose.Schema
 
 // Create the model
-var Player = thinky.createModel('player', {
-	id: type.string(),
-	name: type.string(),
-	position: type.number(),
-	hand: [type.string()],
-	score: type.number(),
-	gameId: type.string(),
-	createdAt: type.date()
-})
+let playerSchema = new Schema(
+	{
+		name: String,
+		position: Number,
+		hand: [String],
+		score: Number,
+		game: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Game'
+		}
+	},
+	{
+		timestamps: true
+	}
+)
 
-// Ensure that an index createdAt exists
-Player.ensureIndex('createdAt')
+let Player = mongoose.model('Player', playerSchema)
 
-export { Player }
+// make this available to our users in our Node applications
+export default Player

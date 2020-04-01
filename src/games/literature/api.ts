@@ -3,7 +3,7 @@ import * as LiteratureController from './controller'
 import * as LiteratureValidator from './validator'
 import * as Validator from '../../util/validator'
 import { Game } from '../../engine'
-import { GameService, PlayerService } from '../../services'
+import { setUpdatesCallback } from '../../services'
 
 let router = express.Router()
 let LiteratureNamespace
@@ -13,7 +13,7 @@ let socketMap = new Map()
 var setupLiteratureGame = async (NamespaceObject) => {
 	LiteratureNamespace = NamespaceObject
 	openSocketChannels()
-	setUpdateEventListeners()
+	setUpdatesCallback(onGameUpdate, onPlayerUpdate)
 }
 
 var getGameData = (gameCode: string): Game => {
@@ -56,7 +56,7 @@ var onGameUpdate = (game: any) => {
 }
 
 var onPlayerUpdate = (player: any) => {
-	let socketId = socketMap.get(player.id)
+	let socketId = socketMap.get(String(player.id))
 	LiteratureNamespace.to(socketId).emit('player-data', {
 		type: 'PLAYER',
 		data: player
@@ -247,7 +247,7 @@ var openSocketChannels = (): void => {
 				let game = getGameData(gameCode)
 				let player = game.getPlayerById(playerId)
 
-				Validator.isOwner(game, player)
+				//Validator.isOwner(game, player)
 				LiteratureController.startGame(game)
 
 				LiteratureNamespace.to(gameCode).emit('game-updates', {
@@ -356,11 +356,6 @@ var openSocketChannels = (): void => {
 			}
 		})
 	})
-}
-
-var setUpdateEventListeners = () => {
-	GameService.setGameUpdatesCallback(onGameUpdate)
-	PlayerService.setPlayerUpdatesCallback(onPlayerUpdate)
 }
 
 export { router as LiteratureRouter, setupLiteratureGame }

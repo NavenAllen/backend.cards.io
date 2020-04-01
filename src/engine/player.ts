@@ -32,7 +32,7 @@ export class Player {
 	static async build(name: string, pos: number) {
 		var p = new Player(name, pos)
 		await PlayerService.create(p, new Date()).then((player) => {
-			p._databaseObjectId = player.id
+			p._databaseObjectId = player._id.toString()
 		})
 		return p
 	}
@@ -82,6 +82,11 @@ export class Player {
 
 	set hand(hand: string[]) {
 		this._hand = hand
+		PlayerService.updateHand(this._databaseObjectId, this._hand).catch(
+			(err) => {
+				throw err
+			}
+		)
 	}
 
 	set id(objectId: string) {

@@ -1,24 +1,37 @@
-import { thinky } from '../util/thinky'
+import mongoose from 'mongoose'
 
-var type = thinky.type
+let Schema = mongoose.Schema
 
 // Create the model
-var Game = thinky.createModel('game', {
-	id: type.string(),
-	type: type.string(),
-	code: type.string(),
-	deck: [type.string()],
-	pile: [type.string()],
-	currentTurn: type.number(),
-	minPlayers: type.number(),
-	maxPlayers: type.number(),
-	isTeam: type.boolean(),
-	isActive: type.boolean(),
-	logs: [type.string()],
-	createdAt: type.date()
+let gameSchema = new Schema(
+	{
+		type: String,
+		code: String,
+		deck: [String],
+		pile: [String],
+		owner: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Player'
+		},
+		currentTurn: Number,
+		minPlayers: Number,
+		maxPlayers: Number,
+		isTeam: Boolean,
+		isActive: Boolean,
+		logs: [String]
+	},
+	{ timeStamps: true }
+)
+
+gameSchema.virtual('players', {
+	ref: 'Player',
+	localField: '_id',
+	foreignField: 'game',
+	justOne: false
 })
+gameSchema.set('toObject', { virtuals: true, getters: true, minimize: true })
+gameSchema.set('toJSON', { virtuals: true, getters: true, minimize: true })
 
-// Ensure that an index createdAt exists
-Game.ensureIndex('createdAt')
+let Game = mongoose.model('Game', gameSchema)
 
-export { Game }
+export default Game

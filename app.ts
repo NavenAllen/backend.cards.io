@@ -3,6 +3,8 @@ import express from 'express'
 import async from 'async'
 import http from 'http'
 import bodyParser from 'body-parser'
+import mongoose from 'mongoose'
+
 import {
 	setupLiteratureGame,
 	LiteratureRouter
@@ -13,6 +15,15 @@ import { config } from './config'
 const port = process.env.PORT ? process.env.PORT : config.express.port
 const app = express()
 var io, server
+
+mongoose.connect(
+	'mongodb://' +
+		config.mongodb.host +
+		':' +
+		config.mongodb.port +
+		'/' +
+		config.mongodb.db
+)
 
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())

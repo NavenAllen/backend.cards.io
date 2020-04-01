@@ -13,14 +13,14 @@ var testLit = async () => {
 }
 
 var handleReconnect = async (id: string) => {
-	let p = await PlayerService.getObjectById(id)
+	let p = await PlayerService.getDocumentById(id)
 	let g = await GameService.getById(p.gameId)
 	return { player: p, game: g }
 }
 
 var registerPlayer = async (id: string, name: string, pos: number) => {
 	try {
-		var player = await PlayerService.getById(id)
+		var player = await PlayerService.getObjectById(id)
 		player.updateDetails(name, pos)
 	} catch (err) {
 		player = await Player.build(name, pos)
