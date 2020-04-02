@@ -37,7 +37,7 @@ export class Game {
 		isTeamGame: boolean
 	) {
 		this._type = type
-		this._code = this.randomString(10)
+		this._code = this._type + ':' + this.randomString(10)
 		this._deck = deck
 		this._minPlayers = minPlayers
 		this._maxPlayers = maxPlayers
@@ -249,6 +249,12 @@ export class Game {
 		} else if (this._players.length === this._maxPlayers) {
 			throw new GameError(403, 'JOIN: Player limit reached')
 		} else {
+			for (var p of this._players)
+				if (p.name === newPlayer.name)
+					throw new GameError(
+						400,
+						'JOIN: Name is taken by someone else'
+					)
 			this._players.push(newPlayer)
 			await GameService.addPlayer(this._databaseObjectId, newPlayer.id)
 		}

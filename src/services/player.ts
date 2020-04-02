@@ -90,28 +90,21 @@ var getObjectById = async (id: string): Promise<Player> => {
 	return Player.fromModelObject(p)
 }
 
-var getDocumentById = async (id: string) => {
-	try {
-		var p = await PlayerModel.get(id).getJoin({ game: true }).run()
-	} catch (err) {
-		throw new DatabaseError(500, 'UPDATE: Player does not exist')
-	}
-	return p
-}
-
 var pluckById = async (id: string) => {
 	try {
 		var p = await PlayerModel.findById(id, { _id: false }).select({
 			name: 1,
 			position: 1,
 			score: 1,
-			hand: 1
+			hand: 1,
+			game: 1
 		})
 		p = p.toObject()
 		p.id = id
-		if (!p) throw new DatabaseError(500, 'GET GAME: Game does not exist')
+		if (!p)
+			throw new DatabaseError(500, 'GET PLAYER: Player does not exist')
 	} catch (err) {
-		throw new DatabaseError(500, 'GET GAME: Could not get Game')
+		throw new DatabaseError(500, 'GET PLAYER: Could not get Player')
 	}
 	return p
 }
@@ -119,7 +112,6 @@ var pluckById = async (id: string) => {
 export {
 	create,
 	getObjectById,
-	getDocumentById,
 	updateDetails,
 	updateHand,
 	updateScore,

@@ -21,7 +21,13 @@ const setUpdatesCallback = (onGameUpdate, onPlayerUpdate) => {
 				.watch({ fullDocument: 'updateLookup' })
 			playersChangeStream.on('change', async (change) => {
 				var player = change.fullDocument
-				player = await PlayerService.pluckById(player._id)
+				player = {
+					id: player._id,
+					name: player.name,
+					hand: player.hand,
+					position: player.position,
+					score: player.score
+				}
 				onPlayerUpdate(player)
 			})
 			const gamesChangeStream = db

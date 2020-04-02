@@ -49,6 +49,7 @@ var filterLogs = (game: any) => {
 
 var onGameUpdate = (game: any) => {
 	filterLogs(game)
+	console.log('GameData: ', game)
 	LiteratureNamespace.to(game.code).emit('game-data', {
 		type: 'GAME',
 		data: game
@@ -57,6 +58,7 @@ var onGameUpdate = (game: any) => {
 
 var onPlayerUpdate = (player: any) => {
 	let socketId = socketMap.get(String(player.id))
+	console.log('PlayerData: ', player)
 	LiteratureNamespace.to(socketId).emit('player-data', {
 		type: 'PLAYER',
 		data: player
@@ -66,6 +68,7 @@ var onPlayerUpdate = (player: any) => {
 var openSocketChannels = (): void => {
 	LiteratureNamespace.on('connection', (socket) => {
 		let pid = socket.handshake.query.pid
+		console.log(pid)
 		if (pid) {
 			if (socketMap.has(pid)) {
 				LiteratureNamespace.to(socket.id).emit('game-updates', {
@@ -133,7 +136,6 @@ var openSocketChannels = (): void => {
 
 		socket.on('probe', async (data) => {
 			let gameCode = data.code
-
 			try {
 				let game = getGameData(gameCode)
 				let response = game.getSpots()
@@ -348,7 +350,7 @@ var openSocketChannels = (): void => {
 		})
 
 		socket.on('disconnect', (reason) => {
-			console.log('Socket[' + socket.id + '] disconnected: ' + reason)
+			console.log('Socket[' + socket.id + '] disconnected')
 			for (let [key, value] of socketMap.entries()) {
 				if (value === socket.id) {
 					socketMap.delete(key)

@@ -13,8 +13,8 @@ var testLit = async () => {
 }
 
 var handleReconnect = async (id: string) => {
-	let p = await PlayerService.getDocumentById(id)
-	let g = await GameService.getById(p.gameId)
+	let p = await PlayerService.pluckById(id)
+	let g = await GameService.pluckById(p.game)
 	return { player: p, game: g }
 }
 

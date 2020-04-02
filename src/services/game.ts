@@ -173,7 +173,7 @@ var updateLogs = async (id: string, logs: string[]) => {
 
 var getById = async (id: string) => {
 	try {
-		var g = await GameModel.findById(id, { _id: false }).populate(
+		var g = await GameModel.findById(id).populate(
 			'players',
 			'-_id name position score hand'
 		)
@@ -192,16 +192,15 @@ var getById = async (id: string) => {
 
 var pluckById = async (id: string) => {
 	try {
-		var g = await GameModel.findById(id, { _id: false })
+		var g = await GameModel.findById(id)
+			.populate('players', '-_id name position score hand')
 			.select({
 				code: 1,
-				pile: 1,
 				currentTurn: 1,
 				logs: 1
 			})
-			.populate('players', '-_id name position score hand')
 		g = g.toObject()
-		g.id = id
+		delete g['_id']
 		if (!g) throw new DatabaseError(500, 'GET GAME: Game does not exist')
 		g.players.forEach((element) => {
 			element.count = element.hand.length
