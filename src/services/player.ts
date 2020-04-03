@@ -99,10 +99,10 @@ var pluckById = async (id: string) => {
 			hand: 1,
 			game: 1
 		})
-		p = p.toObject()
-		p.id = id
 		if (!p)
 			throw new DatabaseError(500, 'GET PLAYER: Player does not exist')
+		p = p.toObject()
+		p.id = id
 	} catch (err) {
 		throw new DatabaseError(500, 'GET PLAYER: Could not get Player')
 	}

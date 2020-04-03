@@ -177,9 +177,9 @@ var getById = async (id: string) => {
 			'players',
 			'-_id name position score hand'
 		)
+		if (!g) throw new DatabaseError(500, 'GET GAME: Game does not exist')
 		g = g.toObject()
 		g.id = id
-		if (!g) throw new DatabaseError(500, 'GET GAME: Game does not exist')
 		g.players.forEach((element) => {
 			element.count = element.hand.length
 			delete element['hand']
@@ -199,9 +199,9 @@ var pluckById = async (id: string) => {
 				currentTurn: 1,
 				logs: 1
 			})
+		if (!g) throw new DatabaseError(500, 'GET GAME: Game does not exist')
 		g = g.toObject()
 		delete g['_id']
-		if (!g) throw new DatabaseError(500, 'GET GAME: Game does not exist')
 		g.players.forEach((element) => {
 			element.count = element.hand.length
 			delete element['hand']

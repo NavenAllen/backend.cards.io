@@ -85,6 +85,7 @@ var openSocketChannels = (): void => {
 						filterLogs(response.game)
 						LiteratureNamespace.to(socket.id).emit('game-updates', {
 							type: 'CONNECT',
+							code: 200,
 							game: response.game,
 							player: response.player
 						})
