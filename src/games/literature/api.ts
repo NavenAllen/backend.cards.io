@@ -147,9 +147,9 @@ var openSocketChannels = (): void => {
 				})
 			} catch (err) {
 				LiteratureNamespace.to(socket.id).emit('game-probe', {
-					code: err.code,
-					name: err.name,
-					message: err.message
+					code: 400,
+					name: 'GameError',
+					message: 'Invalid Code'
 				})
 			}
 		})
@@ -174,17 +174,12 @@ var openSocketChannels = (): void => {
 				socket.join(game.code)
 				socketMap.set(player.id, socket.id)
 
-				LiteratureNamespace.to(game.code).emit('game-updates', {
-					code: 200,
-					type: 'JOIN',
-					pname: player.name,
-					position: player.position
-				})
 				let response = game.getSpots()
 				LiteratureNamespace.to(socket.id).emit('game-updates', {
 					code: 200,
-					type: 'LIST',
+					type: 'JOIN',
 					pid: player.id,
+					gcode: game.code,
 					data: response
 				})
 			} catch (err) {
@@ -209,11 +204,9 @@ var openSocketChannels = (): void => {
 				Validator.isNotOwner(game, player)
 				socket.leave(game.code)
 
-				LiteratureNamespace.to(game.code).emit('game-updates', {
+				LiteratureNamespace.to(socket.id).emit('game-updates', {
 					code: 200,
-					type: 'LEAVE',
-					pname: player.name,
-					position: player.position
+					type: 'LEAVE'
 				})
 			} catch (err) {
 				LiteratureNamespace.to(socket.id).emit('game-updates', {

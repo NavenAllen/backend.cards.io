@@ -197,13 +197,15 @@ var pluckById = async (id: string) => {
 			.select({
 				code: 1,
 				currentTurn: 1,
-				logs: 1
+				logs: 1,
+				isActive: 1
 			})
 		if (!g) throw new DatabaseError(500, 'GET GAME: Game does not exist')
 		g = g.toObject()
 		delete g['_id']
 		g.players.forEach((element) => {
 			element.count = element.hand.length
+			delete element['game']
 			delete element['hand']
 		})
 	} catch (err) {
