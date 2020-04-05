@@ -117,27 +117,29 @@ var declareSet = (
 ) => {
 	game.log('ATTEMPT:' + player.name + ':' + set)
 	let playerTeam = player.position % 2
-	let successfull = true
+	let successful = true
 	for (let i = 0; i < declaration.length; i++) {
 		let currentPos = 2 * (i + 1) - playerTeam
 		for (let j = 0; j < declaration[i].length; j++) {
 			let currentCard = declaration[i][j]
 			let cardHolder = game.findCardWithPlayer(currentCard)
 			if (cardHolder !== currentPos) {
-				successfull = false
+				successful = false
 			}
-			game.players[cardHolder].discard(currentCard)
+			game.getPlayerByPosition(cardHolder).discard(currentCard)
 		}
 	}
-	if (successfull) {
+	if (successful) {
 		player.score += 1
 		game.log('DECLARE:' + player.name + ':' + set)
 		console.log(player.name + ' correctly declared the ' + set)
 	} else {
-		let opponent = (player.position + 1) % game.players.length
-		game.players[opponent].score += 1
-		game.currentTurn = opponent
-		game.log('DECLARE:' + game.players[opponent].name + ':' + set)
+		let opponent = game.getPlayerByPosition(
+			(player.position + 1) % game.players.length
+		)
+		opponent.score += 1
+		game.currentTurn = opponent.position
+		game.log('DECLARE:' + opponent.name + ':' + set)
 		console.log(player.name + ' incorrectly declared the ' + set)
 	}
 	game.processRound()

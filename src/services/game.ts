@@ -233,7 +233,7 @@ var pluckById = async (id: string) => {
 		if (!g) throw new DatabaseError(500, 'PLUCK GAME: Game does not exist')
 		g = g.toObject()
 		delete g['_id']
-		delete g['owner']['_id']
+		g.owner = g.owner.position
 		g.players.forEach((element) => {
 			element.count = element.hand.length
 			delete element['game']

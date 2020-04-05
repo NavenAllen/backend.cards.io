@@ -34,9 +34,11 @@ const setUpdatesCallback = (onGameUpdate, onPlayerUpdate) => {
 				.collection('games')
 				.watch({ fullDocument: 'updateLookup' })
 			gamesChangeStream.on('change', async (change) => {
-				var game = change.fullDocument
-				game = await GameService.pluckById(game._id)
-				onGameUpdate(game)
+				if (change.operationType !== 'delete') {
+					var game = change.fullDocument
+					game = await GameService.pluckById(game._id)
+					onGameUpdate(game)
+				}
 			})
 		}
 	)
