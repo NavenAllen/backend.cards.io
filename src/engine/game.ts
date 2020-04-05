@@ -200,16 +200,27 @@ export class Game {
 	}
 
 	removePlayer = async (player: Player) => {
-		if (this._isActive) {
-			throw new GameError(403, 'LEAVE: Game already started')
-		} else if (this._owner.id === player.id) {
-			throw new GameError(403, 'LEAVE: Owner cannot leave the game')
-		} else {
-			let index = this._players.indexOf(this.getPlayerById(player.id))
-			this._players.splice(index, 1)
-			GameService.removePlayer(player.id).catch((err) => {
-				throw err
-			})
+		let index = this._players.indexOf(this.getPlayerById(player.id))
+		this._players.splice(index, 1)
+
+		GameService.removePlayer(player.id).catch((err) => {
+			throw err
+		})
+
+		if (player.position === this._owner.position) {
+			if (this._players.length > 0) {
+				this._owner = this._players[0]
+				GameService.assignOwner(
+					this._databaseObjectId,
+					this._players[0].id
+				).catch((err) => {
+					throw err
+				})
+				return true
+			} else {
+				this.destroy()
+				return false
+			}
 		}
 	}
 

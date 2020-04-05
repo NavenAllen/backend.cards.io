@@ -79,20 +79,19 @@ var joinGame = async (game: Game, player: Player) => {
 }
 
 var leaveGame = async (game: Game, player: Player) => {
-	await game.removePlayer(player)
-	game.log('LEAVE:' + player.name)
+	let success = await game.removePlayer(player)
+	if (success) {
+		game.log('LEAVE:' + player.name)
+		return true
+	} else return false
 }
 
-var startGame = async (game: Game) => {
+var startGame = (game: Game) => {
 	game.prepareGame()
 	game.log('START')
 }
 
-var destroyGame = async (game: Game) => {
-	game.destroy()
-}
-
-var askForCard = async (game: Game, from: Player, to: Player, card: string) => {
+var askForCard = (game: Game, from: Player, to: Player, card: string) => {
 	try {
 		from.add(to.discard(card))
 		game.log('TAKE:' + from.name + ':' + to.name + ':' + card)
@@ -104,13 +103,13 @@ var askForCard = async (game: Game, from: Player, to: Player, card: string) => {
 	}
 }
 
-var transferTurn = async (game: Game, from: Player, to: Player) => {
+var transferTurn = (game: Game, from: Player, to: Player) => {
 	game.currentTurn = to.position
 	game.log('TRANSFER:' + from.name + ':' + to.name)
 	console.log('Turn transferred to ' + to.name)
 }
 
-var declareSet = async (
+var declareSet = (
 	game: Game,
 	player: Player,
 	set: string,
@@ -150,7 +149,6 @@ export {
 	joinGame,
 	leaveGame,
 	startGame,
-	destroyGame,
 	askForCard,
 	transferTurn,
 	declareSet

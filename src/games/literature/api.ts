@@ -68,8 +68,9 @@ var onPlayerUpdate = (player: any) => {
 var openSocketChannels = (): void => {
 	LiteratureNamespace.on('connection', (socket) => {
 		let pid = socket.handshake.query.pid
-		console.log(pid)
-		if (pid) {
+		// console.log('Connected to: ' + socket.id)
+		// console.log('Received PlayerID: ' + pid)
+		if (pid.length !== 0) {
 			if (socketMap.has(pid)) {
 				LiteratureNamespace.to(socket.id).emit('game-updates', {
 					type: 'CONNECT',
@@ -80,6 +81,7 @@ var openSocketChannels = (): void => {
 			} else {
 				LiteratureController.handleReconnect(pid)
 					.then((response) => {
+						// if (response.game.isActive) {
 						socketMap.set(pid, socket.id)
 						socket.join(response.game.code)
 						filterLogs(response.game)
@@ -89,6 +91,7 @@ var openSocketChannels = (): void => {
 							game: response.game,
 							player: response.player
 						})
+						// }
 					})
 					.catch((err) => {
 						LiteratureNamespace.to(socket.id).emit('game-updates', {
@@ -149,7 +152,7 @@ var openSocketChannels = (): void => {
 				LiteratureNamespace.to(socket.id).emit('game-probe', {
 					code: 400,
 					name: 'GameError',
-					message: 'Invalid Code'
+					message: 'No Game Found'
 				})
 			}
 		})
@@ -199,10 +202,10 @@ var openSocketChannels = (): void => {
 			try {
 				let game = getGameData(gameCode)
 				let player = game.getPlayerById(playerId)
-				await LiteratureController.leaveGame(game, player)
 
-				Validator.isNotOwner(game, player)
+				let success = await LiteratureController.leaveGame(game, player)
 				socket.leave(game.code)
+				if (!success) removeGameData(game)
 
 				LiteratureNamespace.to(socket.id).emit('game-updates', {
 					code: 200,
@@ -218,23 +221,6 @@ var openSocketChannels = (): void => {
 			}
 		})
 
-		socket.on('destroy', async (data) => {
-			let gameCode = data.code
-			let playerId = data.pid
-
-			try {
-				let game = getGameData(gameCode)
-				let player = game.getPlayerById(playerId)
-
-				Validator.isOwner(game, player)
-				LiteratureController.destroyGame(game)
-
-				removeGameData(game)
-			} catch (err) {
-				console.log('Unable to delete game')
-			}
-		})
-
 		socket.on('start', (data) => {
 			let gameCode = data.code
 			let playerId = data.pid
@@ -243,7 +229,7 @@ var openSocketChannels = (): void => {
 				let game = getGameData(gameCode)
 				let player = game.getPlayerById(playerId)
 
-				//Validator.isOwner(game, player)
+				Validator.isOwner(game, player)
 				LiteratureController.startGame(game)
 
 				LiteratureNamespace.to(gameCode).emit('game-updates', {
@@ -344,7 +330,7 @@ var openSocketChannels = (): void => {
 		})
 
 		socket.on('disconnect', (reason) => {
-			console.log('Socket[' + socket.id + '] disconnected')
+			// console.log('Disconnected from: ' + socket.id)
 			for (let [key, value] of socketMap.entries()) {
 				if (value === socket.id) {
 					socketMap.delete(key)

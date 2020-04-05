@@ -46,6 +46,34 @@ var create = async (game: Game, owner: Player, createdAt: Date) => {
 	return gameData
 }
 
+var assignOwner = async (gameId: string, ownerId: string) => {
+	try {
+		var gameObject = await GameModel.findById(gameId)
+		if (!gameObject)
+			throw new DatabaseError(500, 'GET OWNER: Game does not exist')
+	} catch (err) {
+		throw new DatabaseError(500, 'GET OWNER: Unable to get Game')
+	}
+
+	try {
+		var ownerDocument = await PlayerModel.findById(ownerId)
+		if (!ownerDocument)
+			throw new DatabaseError(500, 'GET OWNER: Player does not exist')
+	} catch (err) {
+		throw new DatabaseError(500, 'GET OWNER: Unable to get Player')
+	}
+
+	gameObject.owner = ownerDocument
+
+	try {
+		var gameData = await gameObject.save()
+		if (!gameData)
+			throw new DatabaseError(500, 'SAVE GAME: Unable to save game')
+	} catch (err) {
+		throw new DatabaseError(500, 'SAVE GAME: Unable to save game')
+	}
+}
+
 var addPlayer = async (gameId: string, playerId: string) => {
 	try {
 		var game = await GameModel.findById(gameId)
@@ -193,23 +221,26 @@ var getById = async (id: string) => {
 var pluckById = async (id: string) => {
 	try {
 		var g = await GameModel.findById(id)
+			.populate('owner', 'position')
 			.populate('players', '-_id name position score hand')
 			.select({
 				code: 1,
 				currentTurn: 1,
 				logs: 1,
-				isActive: 1
+				isActive: 1,
+				minPlayers: 1
 			})
-		if (!g) throw new DatabaseError(500, 'GET GAME: Game does not exist')
+		if (!g) throw new DatabaseError(500, 'PLUCK GAME: Game does not exist')
 		g = g.toObject()
 		delete g['_id']
+		delete g['owner']['_id']
 		g.players.forEach((element) => {
 			element.count = element.hand.length
 			delete element['game']
 			delete element['hand']
 		})
 	} catch (err) {
-		throw new DatabaseError(500, 'GET GAME: Could not get Game')
+		throw new DatabaseError(500, 'PLUCK GAME: Could not get Game')
 	}
 	return g
 }
@@ -224,6 +255,7 @@ var destroy = async (id: string) => {
 
 export {
 	create,
+	assignOwner,
 	addPlayer,
 	removePlayer,
 	getById,
