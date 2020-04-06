@@ -256,7 +256,7 @@ var openSocketChannels = (): void => {
 				let toPlayer = game.getPlayerByPosition(data.tpos)
 
 				Validator.isMyTurn(game, fromPlayer)
-				LiteratureValidator.canAsk(fromPlayer, card)
+				LiteratureValidator.canAsk(fromPlayer, toPlayer, card)
 				LiteratureController.askForCard(
 					game,
 					fromPlayer,

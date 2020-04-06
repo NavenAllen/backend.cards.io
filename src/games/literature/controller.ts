@@ -69,6 +69,13 @@ var hostGame = async (owner: Player) => {
 			else if (isOddDone) this.currentTurn = 2
 		}
 	}
+	g.activePlayers = function () {
+		let activePlayers = []
+		this._players.forEach((player) => {
+			if (player.hand.length) activePlayers.push(player)
+		})
+		return activePlayers
+	}
 	g.log('CREATE:' + owner.name)
 	return g
 }

@@ -60,7 +60,7 @@ const checkSameSet = (declaration: string[][]): string => {
 	return baseSet.name
 }
 
-const canAsk = (player: Player, card: string) => {
+const canAsk = (player: Player, toPlayer: Player, card: string) => {
 	if (player.hand.includes(card))
 		throw new ValidationError(400, 'INVALID: You already have the card')
 

@@ -28,6 +28,7 @@ export class Game {
 	private _decideStarter: Function
 	private _isGameOver: Function
 	private _processRound: Function
+	private _activePlayers: Function
 
 	constructor(
 		type: string,
@@ -145,6 +146,14 @@ export class Game {
 		return this._isGameOver
 	}
 
+	get processRound(): Function {
+		return this._processRound
+	}
+
+	get activePlayers(): Function {
+		return this._activePlayers
+	}
+
 	set currentTurn(pos: number) {
 		this._currentTurn = pos
 		GameService.updateTurn(this._databaseObjectId, this._currentTurn).catch(
@@ -164,6 +173,10 @@ export class Game {
 
 	set processRound(processor: Function) {
 		this._processRound = processor.bind(this)
+	}
+
+	set activePlayers(getActivePlayers: Function) {
+		this._activePlayers = getActivePlayers.bind(this)
 	}
 
 	set id(objectId: string) {
@@ -204,6 +217,7 @@ export class Game {
 		this._players.splice(index, 1)
 
 		GameService.removePlayer(player.id).catch((err) => {
+			console.log(err)
 			throw err
 		})
 
@@ -221,6 +235,8 @@ export class Game {
 				this.destroy()
 				return false
 			}
+		} else {
+			return true
 		}
 	}
 
