@@ -199,6 +199,22 @@ var updateLogs = async (id: string, logs: string[]) => {
 	}
 }
 
+var updateAdditionalData = async (id: string, additionalData) => {
+	try {
+		var game = await GameModel.findByIdAndUpdate(
+			id,
+			{
+				additionalData
+			},
+			{ new: true }
+		)
+
+		if (!game) throw new DatabaseError(500, 'UPDATE: Game does not exist')
+	} catch (err) {
+		throw new DatabaseError(500, 'UPDATE: Game could not be updated')
+	}
+}
+
 var getById = async (id: string) => {
 	try {
 		var g = await GameModel.findById(id).populate(
@@ -228,7 +244,8 @@ var pluckById = async (id: string) => {
 				currentTurn: 1,
 				logs: 1,
 				isActive: 1,
-				minPlayers: 1
+				minPlayers: 1,
+				additionalData: 1
 			})
 		if (!g) throw new DatabaseError(500, 'PLUCK GAME: Game does not exist')
 		g = g.toObject()
@@ -264,6 +281,7 @@ export {
 	updateTurn,
 	updatePile,
 	updateLogs,
+	updateAdditionalData,
 	destroy,
 	pluckById
 }

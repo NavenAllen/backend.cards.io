@@ -25,6 +25,7 @@ export class Game {
 	private _currentTurn: number
 	private _databaseObjectId: string
 	private _logs: string[]
+	private _additionalData: Object
 	private _decideStarter: Function
 	private _isGameOver: Function
 	private _processRound: Function
@@ -47,6 +48,7 @@ export class Game {
 		this._players = []
 		this._pile = []
 		this._logs = []
+		this._additionalData = {}
 	}
 
 	static build = async (
@@ -203,6 +205,26 @@ export class Game {
 		this._logs = logs
 	}
 
+	getAdditionalData = (key: string) => {
+		if (this._additionalData.hasOwnProperty(key))
+			return this._additionalData[key]
+		else
+			throw new GameError(
+				404,
+				'GET DATA: Key does not exist in addition data'
+			)
+	}
+
+	setAdditionalData = (key: string, value: any) => {
+		this._additionalData[key] = value
+		GameService.updateAdditionalData(
+			this._databaseObjectId,
+			this._additionalData
+		).catch((err) => {
+			throw err
+		})
+	}
+
 	log = (entry: string) => {
 		this._logs.push(entry)
 		GameService.updateLogs(this._databaseObjectId, this._logs).catch(
@@ -331,6 +353,15 @@ export class Game {
 
 	discardToPile = (card): void => {
 		this._pile.push(card)
+		GameService.updatePile(this._databaseObjectId, this.pile).catch(
+			(err) => {
+				throw err
+			}
+		)
+	}
+
+	discardPile = (): void => {
+		this._pile = []
 		GameService.updatePile(this._databaseObjectId, this.pile).catch(
 			(err) => {
 				throw err

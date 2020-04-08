@@ -18,7 +18,11 @@ let gameSchema = new Schema(
 		maxPlayers: Number,
 		isTeam: Boolean,
 		isActive: Boolean,
-		logs: [String]
+		logs: [String],
+		additionalData: {
+			type: mongoose.Schema.Types.Mixed,
+			default: {}
+		}
 	},
 	{ timeStamps: true }
 )
