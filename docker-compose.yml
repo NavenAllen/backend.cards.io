@@ -1,0 +1,22 @@
+version: "3"
+services:
+  cardsbackend:
+    container_name: backend
+    image: cardsbackend
+    restart: always
+    build: .
+    ports:
+      - "3000:3000"
+    links:
+      - mongo
+    depends_on:
+      - mongo
+  mongo:
+    container_name: mongo
+    image: mongo
+    restart: always
+    command: mongod --dbpath ./data --replSet 'rs'
+    volumes:
+      - ./data:/data/db
+    ports:
+      - "27017:27017"
