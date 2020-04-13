@@ -346,8 +346,9 @@ export class Game {
 	}
 
 	findCardWithPlayer = (card: string): number => {
-		for (let i = 0; i < this.players.length; i++) {
-			if (this.players[i].getIndexOf(card) !== -1) return i
+		for (let i = 0; i < this._players.length; i++) {
+			if (this._players[i].getIndexOf(card) !== -1)
+				return this._players[i].position
 		}
 	}
 
