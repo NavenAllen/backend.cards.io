@@ -22,7 +22,7 @@ const hs = ['9S', '10S', 'JS', 'QS', 'KS', 'AS']
 const lh = ['2H', '3H', '4H', '5H', '6H', '7H']
 const hh = ['9H', '10H', 'JH', 'QH', 'KH', 'AH']
 
-const jok = ['8C', '8D', '8S', '8D', 'JOKER', 'JOKER']
+const jok = ['8C', '8D', '8S', '8H', 'JOKER', 'JOKER']
 
 var findBaseSet = (card: string) => {
 	if (card.slice(0, 1) === '8' || card === 'JOKER') {

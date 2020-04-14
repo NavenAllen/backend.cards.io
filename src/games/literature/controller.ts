@@ -139,14 +139,14 @@ var declareSet = (
 	if (successful) {
 		player.score += 1
 		game.log('DECLARE:' + player.name + ':' + set)
-		console.log(player.name + ' correctly declared the ' + set)
+		console.log(player.name + ' correctly declared the ' + set + ':CORRECT')
 	} else {
 		let opponent = game.getPlayerByPosition(
 			(player.position + 1) % game.players.length
 		)
 		opponent.score += 1
 		game.currentTurn = opponent.position
-		game.log('DECLARE:' + opponent.name + ':' + set)
+		game.log('DECLARE:' + player.name + ':' + set + ':INCORRECT')
 		console.log(player.name + ' incorrectly declared the ' + set)
 	}
 	game.processRound()
