@@ -1,22 +1,20 @@
 version: "3"
 services:
-  cardsbackend:
-    container_name: backend
-    image: cardsbackend
+  backend:
+    container_name: cards-backend
+    image: cards-backend
     restart: always
     build: .
     ports:
-      - "3000:3000"
-    links:
-      - mongo
+      - "42069:3000"
     depends_on:
-      - mongo
-  mongo:
-    container_name: mongo
+      - mongodb
+  mongodb:
+    container_name: cards-mongodb
     image: mongo
     restart: always
-    command: mongod --dbpath ./data --replSet 'rs'
+    command: ["-f", "/etc/mongodb.conf"]
     volumes:
-      - ./data:/data/db
+      - ./docker/mongo/db.conf:/etc/mongodb.conf
     ports:
-      - "27017:27017"
+      - "42070:27017"

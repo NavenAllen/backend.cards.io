@@ -11,7 +11,8 @@ const setUpdatesCallback = (onGameUpdate, onPlayerUpdate) => {
 			config.mongodb.port +
 			'/' +
 			config.mongodb.db +
-			'?replicaSet=rs',
+			'?replicaSet=' +
+			config.mongodb.replicaSetName,
 		{ useNewUrlParser: true },
 		function (err, database) {
 			if (err) throw err

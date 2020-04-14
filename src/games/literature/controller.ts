@@ -138,8 +138,8 @@ var declareSet = (
 	}
 	if (successful) {
 		player.score += 1
-		game.log('DECLARE:' + player.name + ':' + set)
-		console.log(player.name + ' correctly declared the ' + set + ':CORRECT')
+		game.log('DECLARE:' + player.name + ':' + set + ':CORRECT')
+		console.log(player.name + ' correctly declared the ' + set)
 	} else {
 		let opponent = game.getPlayerByPosition(
 			(player.position + 1) % game.players.length
