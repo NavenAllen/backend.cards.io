@@ -16,5 +16,6 @@ services:
     command: ["-f", "/etc/mongodb.conf"]
     volumes:
       - ./docker/mongo/db.conf:/etc/mongodb.conf
+      - ./docker/db:/data/db
     ports:
       - "42070:27017"

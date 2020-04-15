@@ -44,7 +44,7 @@ var filterLogs = (game: any) => {
 			result.push(game.logs[i - 1])
 		}
 	}
-	game.logs = result.reverse()
+	game.logs = result
 }
 
 var onGameUpdate = (game: any) => {
