@@ -3,9 +3,11 @@ import { GameService } from '../services'
 
 class GameError extends Error {
 	public code: number
-	constructor(code: number, message: string) {
+	public scope: string
+	constructor(code: number, scope: string, message: string) {
 		super(message)
 		this.code = code
+		this.scope = scope
 		Object.setPrototypeOf(this, new.target.prototype)
 		this.name = GameError.name
 	}
@@ -211,7 +213,8 @@ export class Game {
 		else
 			throw new GameError(
 				404,
-				'GET DATA: Key does not exist in addition data'
+				'GET DATA',
+				'Key does not exist in addition data'
 			)
 	}
 
@@ -239,7 +242,6 @@ export class Game {
 		this._players.splice(index, 1)
 
 		GameService.removePlayer(player.id).catch((err) => {
-			console.log(err)
 			throw err
 		})
 
@@ -294,15 +296,16 @@ export class Game {
 
 	addPlayer = async (newPlayer: Player) => {
 		if (this._isActive) {
-			throw new GameError(403, 'JOIN: Game already started')
+			throw new GameError(403, 'JOIN-GAME', 'Game already started')
 		} else if (this._players.length === this._maxPlayers) {
-			throw new GameError(403, 'JOIN: Player limit reached')
+			throw new GameError(403, 'JOIN-GAME', 'Player limit reached')
 		} else {
 			for (var p of this._players)
 				if (p.name === newPlayer.name)
 					throw new GameError(
 						400,
-						'JOIN: Name is taken by someone else'
+						'JOIN-GAME',
+						'Name is taken by someone else'
 					)
 			this._players.push(newPlayer)
 			await GameService.addPlayer(this._databaseObjectId, newPlayer.id)
@@ -372,16 +375,15 @@ export class Game {
 
 	prepareGame = (cardCount = 0): void => {
 		if (this._isTeamGame && this._players.length % 2 !== 0)
-			throw new GameError(403, 'START: Not enough players')
+			throw new GameError(403, 'START-GAME', 'Not enough players')
 
 		if (this._players.length < this._minPlayers)
-			throw new GameError(403, 'START: Not enough players')
+			throw new GameError(403, 'START-GAME', 'Not enough players')
 
 		this._deck
 			.deal(this._players.length, cardCount)
 			.forEach((hand, index) => {
 				this._players[index].hand = hand
-				console.log(this._players[index].hand)
 			})
 
 		this._isActive = true

@@ -1,6 +1,7 @@
 import * as GameService from './game'
 import * as PlayerService from './player'
 import { config } from '../../config'
+import { Logger } from '../util/logger'
 var MongoClient = require('mongodb').MongoClient
 
 const setUpdatesCallback = (onGameUpdate, onPlayerUpdate) => {
@@ -29,12 +30,19 @@ const setUpdatesCallback = (onGameUpdate, onPlayerUpdate) => {
 					position: player.position,
 					score: player.score
 				}
-				onPlayerUpdate(player)
+				let code
+				try {
+					code = (await GameService.getById(player.game)).code
+				} catch (err) {
+					code = 'null'
+				}
+				onPlayerUpdate(player, code)
 			})
 			const gamesChangeStream = db
 				.collection('games')
 				.watch({ fullDocument: 'updateLookup' })
 			gamesChangeStream.on('change', async (change) => {
+				console.log(change)
 				if (change.operationType !== 'delete') {
 					var game = change.fullDocument
 					game = await GameService.pluckById(game._id)

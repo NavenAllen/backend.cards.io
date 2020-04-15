@@ -3,9 +3,11 @@ import { PlayerModel } from '../models'
 
 class DatabaseError extends Error {
 	public code: number
-	constructor(code: number, message: string) {
+	public scope: string
+	constructor(code: number, scope: string, message: string) {
 		super(message)
 		this.code = code
+		this.scope = scope
 		Object.setPrototypeOf(this, new.target.prototype)
 		this.name = DatabaseError.name
 	}
@@ -23,7 +25,7 @@ var create = async (player: Player, createdAt: Date) => {
 	try {
 		var p = await playerObject.save()
 	} catch (err) {
-		throw new DatabaseError(500, 'SAVE PLAYER: Unable to save player')
+		throw new DatabaseError(500, 'SAVE-PLAYER', 'Unable to save player')
 	}
 	return p
 }
@@ -40,9 +42,17 @@ var updateDetails = async (id: string, name: string, pos: number) => {
 		)
 
 		if (!player)
-			throw new DatabaseError(500, 'UPDATE: Player does not exist')
+			throw new DatabaseError(
+				500,
+				'UPDATE-DETAILS',
+				'Player does not exist'
+			)
 	} catch (err) {
-		throw new DatabaseError(500, 'UPDATE: Player could not be updated')
+		throw new DatabaseError(
+			500,
+			'UPDATE-DETAILS',
+			'Player could not be updated'
+		)
 	}
 }
 
@@ -57,9 +67,17 @@ var updateScore = async (id: string, score: number) => {
 		)
 
 		if (!player)
-			throw new DatabaseError(500, 'UPDATE: Player does not exist')
+			throw new DatabaseError(
+				500,
+				'UPDATE-SCORE',
+				'Player does not exist'
+			)
 	} catch (err) {
-		throw new DatabaseError(500, 'UPDATE: Player could not be updated')
+		throw new DatabaseError(
+			500,
+			'UPDATE-SCORE',
+			'Player could not be updated'
+		)
 	}
 }
 
@@ -74,18 +92,23 @@ var updateHand = async (id: string, hand: string[]) => {
 		)
 
 		if (!player)
-			throw new DatabaseError(500, 'UPDATE: Player does not exist')
+			throw new DatabaseError(500, 'UPDATE-HAND', 'Player does not exist')
 	} catch (err) {
-		throw new DatabaseError(500, 'UPDATE: Player could not be updated')
+		throw new DatabaseError(
+			500,
+			'UPDATE-HAND',
+			'Player could not be updated'
+		)
 	}
 }
 
 var getObjectById = async (id: string): Promise<Player> => {
 	try {
 		var p = await PlayerModel.findById(id)
-		if (!p) throw new DatabaseError(500, 'UPDATE: Player does not exist')
+		if (!p)
+			throw new DatabaseError(500, 'GET-PLAYER', 'Player does not exist')
 	} catch (err) {
-		throw new DatabaseError(500, 'UPDATE: Player does not exist')
+		throw new DatabaseError(500, 'GET-PLAYER', 'Player does not exist')
 	}
 	return Player.fromModelObject(p)
 }
@@ -100,11 +123,15 @@ var pluckById = async (id: string) => {
 			game: 1
 		})
 		if (!p)
-			throw new DatabaseError(500, 'GET PLAYER: Player does not exist')
+			throw new DatabaseError(
+				500,
+				'PLUCK-PLAYER',
+				'Player does not exist'
+			)
 		p = p.toObject()
 		p.id = id
 	} catch (err) {
-		throw new DatabaseError(500, 'GET PLAYER: Could not get Player')
+		throw new DatabaseError(500, 'PLUCK-PLAYER', 'Could not get Player')
 	}
 	return p
 }

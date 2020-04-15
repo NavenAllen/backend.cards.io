@@ -2,9 +2,11 @@ import { PlayerService } from '../services'
 
 class PlayerError extends Error {
 	public code: number
-	constructor(code: number, message: string) {
+	public scope: string
+	constructor(code: number, scope: string, message: string) {
 		super(message)
 		this.code = code
+		this.scope = scope
 		Object.setPrototypeOf(this, new.target.prototype)
 		this.name = PlayerError.name
 	}
@@ -128,7 +130,8 @@ export class Player {
 		if (index === -1) {
 			throw new PlayerError(
 				403,
-				'DISCARD: Does not have the requested card'
+				'DISCARD-CARD',
+				'Player does not have the requested card'
 			)
 		} else {
 			let discarded = this._hand.splice(index, 1)[0]

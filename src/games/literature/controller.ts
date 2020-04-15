@@ -1,5 +1,6 @@
 import { Deck, Player, Game } from '../../engine'
 import { GameService, PlayerService } from '../../services'
+import { Logger } from '../../util/logger'
 
 var testLit = async () => {
 	let po = await Player.build('Nandha', 2)
@@ -102,10 +103,16 @@ var askForCard = (game: Game, from: Player, to: Player, card: string) => {
 	try {
 		from.add(to.discard(card))
 		game.log('TAKE:' + from.name + ':' + to.name + ':' + card)
-		console.log(from.name + ' took ' + card + ' from ' + to.name)
+		Logger.debug(
+			'[%s] ' + from.name + ' took ' + card + ' from ' + to.name,
+			game.code
+		)
 	} catch (err) {
 		game.log('ASK:' + from.name + ':' + to.name + ':' + card)
-		console.log(from.name + ' asked ' + to.name + ' for ' + card)
+		Logger.debug(
+			'[%s] ' + from.name + ' asked ' + to.name + ' for ' + card,
+			game.code
+		)
 		game.currentTurn = to.position
 	}
 }
@@ -113,7 +120,7 @@ var askForCard = (game: Game, from: Player, to: Player, card: string) => {
 var transferTurn = (game: Game, from: Player, to: Player) => {
 	game.currentTurn = to.position
 	game.log('TRANSFER:' + from.name + ':' + to.name)
-	console.log('Turn transferred to ' + to.name)
+	Logger.debug('[%s] Turn transferred to ' + to.name, game.code)
 }
 
 var declareSet = (
@@ -139,7 +146,10 @@ var declareSet = (
 	if (successful) {
 		player.score += 1
 		game.log('DECLARE:' + player.name + ':' + set + ':CORRECT')
-		console.log(player.name + ' correctly declared the ' + set)
+		Logger.debug(
+			'[%s] ' + player.name + ' correctly declared the ' + set,
+			game.code
+		)
 	} else {
 		let opponent = game.getPlayerByPosition(
 			(player.position + 1) % game.players.length
@@ -147,7 +157,10 @@ var declareSet = (
 		opponent.score += 1
 		game.currentTurn = opponent.position
 		game.log('DECLARE:' + player.name + ':' + set + ':INCORRECT')
-		console.log(player.name + ' incorrectly declared the ' + set)
+		Logger.debug(
+			'[%s] ' + player.name + ' incorrectly declared the ' + set,
+			game.code
+		)
 	}
 	game.processRound()
 }

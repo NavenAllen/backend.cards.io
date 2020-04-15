@@ -2,6 +2,7 @@ import express from 'express'
 import * as LiteratureController from './controller'
 import * as LiteratureValidator from './validator'
 import * as Validator from '../../util/validator'
+import { Logger } from '../../util/logger'
 import { Game } from '../../engine'
 import { setUpdatesCallback } from '../../services'
 
@@ -49,16 +50,16 @@ var filterLogs = (game: any) => {
 
 var onGameUpdate = (game: any) => {
 	filterLogs(game)
-	console.log('GameData: ', game)
+	Logger.info('GAME-UPDATE[%s]', game.code, game)
 	LiteratureNamespace.to(game.code).emit('game-data', {
 		type: 'GAME',
 		data: game
 	})
 }
 
-var onPlayerUpdate = (player: any) => {
+var onPlayerUpdate = (player: any, code: string) => {
 	let socketId = socketMap.get(String(player.id))
-	console.log('PlayerData: ', player)
+	Logger.info('PLAYER-UPDATE[%s][%s]', code, player.id, player)
 	LiteratureNamespace.to(socketId).emit('player-data', {
 		type: 'PLAYER',
 		data: player
@@ -68,9 +69,8 @@ var onPlayerUpdate = (player: any) => {
 var openSocketChannels = (): void => {
 	LiteratureNamespace.on('connection', (socket) => {
 		let pid = socket.handshake.query.pid
-		// console.log('Connected to: ' + socket.id)
-		// console.log('Received PlayerID: ' + pid)
 		if (pid.length !== 0) {
+			Logger.info('CONNECT[%s]', pid)
 			if (socketMap.has(pid)) {
 				LiteratureNamespace.to(socket.id).emit('game-updates', {
 					type: 'CONNECT',
@@ -81,7 +81,6 @@ var openSocketChannels = (): void => {
 			} else {
 				LiteratureController.handleReconnect(pid)
 					.then((response) => {
-						// if (response.game.isActive) {
 						socketMap.set(pid, socket.id)
 						socket.join(response.game.code)
 						filterLogs(response.game)
@@ -91,15 +90,25 @@ var openSocketChannels = (): void => {
 							game: response.game,
 							player: response.player
 						})
-						// }
 					})
 					.catch((err) => {
-						LiteratureNamespace.to(socket.id).emit('game-updates', {
-							type: 'CONNECT',
-							code: 400,
-							name: err.name,
-							message: err.message
-						})
+						if (err.scope !== 'PLUCK-GAME') {
+							Logger.error('RECONNECT-FAIL[%s]', pid, {
+								error: { ...err, msg: err.message }
+							})
+							LiteratureNamespace.to(socket.id).emit(
+								'game-updates',
+								{
+									type: 'CONNECT',
+									code: 400,
+									name: err.name,
+									message:
+										err.name !== 'TypeError'
+											? err.message
+											: 'Unable to reconnect to game.'
+								}
+							)
+						}
 					})
 			}
 		}
@@ -116,6 +125,7 @@ var openSocketChannels = (): void => {
 					playerPosition
 				)
 				let game = await LiteratureController.hostGame(player)
+				var gameCode = game.code
 
 				setGameData(game)
 				socket.join(game.code)
@@ -129,11 +139,17 @@ var openSocketChannels = (): void => {
 					pname: player.name
 				})
 			} catch (err) {
+				Logger.error('CREATE-FAIL[%s][%s]', gameCode, playerId, {
+					error: { ...err, msg: err.message }
+				})
 				LiteratureNamespace.to(socket.id).emit('game-updates', {
 					type: 'CREATE',
 					code: err.code,
 					name: err.name,
-					message: err.message
+					message:
+						err.name !== 'TypeError'
+							? err.message
+							: 'Unable to create game.'
 				})
 			}
 		})
@@ -186,11 +202,17 @@ var openSocketChannels = (): void => {
 					data: response
 				})
 			} catch (err) {
+				Logger.error('JOIN-FAIL[%s][%s]', gameCode, playerId, {
+					error: { ...err, msg: err.message }
+				})
 				LiteratureNamespace.to(socket.id).emit('game-updates', {
 					type: 'JOIN',
 					code: err.code,
 					name: err.name,
-					message: err.message
+					message:
+						err.name !== 'TypeError'
+							? err.message
+							: 'Unable to join game.'
 				})
 			}
 		})
@@ -212,11 +234,17 @@ var openSocketChannels = (): void => {
 					type: 'LEAVE'
 				})
 			} catch (err) {
+				Logger.error('LEAVE-FAIL[%s][%s]', gameCode, playerId, {
+					error: { ...err, msg: err.message }
+				})
 				LiteratureNamespace.to(socket.id).emit('game-updates', {
 					type: 'LEAVE',
 					code: err.code,
 					name: err.name,
-					message: err.message
+					message:
+						err.name !== 'TypeError'
+							? err.message
+							: 'Unable to leave game.'
 				})
 			}
 		})
@@ -237,11 +265,17 @@ var openSocketChannels = (): void => {
 					type: 'START'
 				})
 			} catch (err) {
+				Logger.error('START-FAIL[%s][%s]', gameCode, playerId, {
+					error: { ...err, msg: err.message }
+				})
 				LiteratureNamespace.to(socket.id).emit('game-updates', {
 					type: 'START',
 					code: err.code,
 					name: err.name,
-					message: err.message
+					message:
+						err.name !== 'TypeError'
+							? err.message
+							: 'Unable to start game.'
 				})
 			}
 		})
@@ -268,10 +302,16 @@ var openSocketChannels = (): void => {
 					type: 'ASK'
 				})
 			} catch (err) {
+				Logger.error('ASK-FAIL[%s][%s]', gameCode, data.fid, {
+					error: { ...err, msg: err.message }
+				})
 				LiteratureNamespace.to(socket.id).emit('play-ask', {
 					code: err.code,
 					name: err.name,
-					message: err.message
+					message:
+						err.name !== 'TypeError'
+							? err.message
+							: 'Requested action failed.'
 				})
 			}
 		})
@@ -293,10 +333,16 @@ var openSocketChannels = (): void => {
 					type: 'DECLARE'
 				})
 			} catch (err) {
+				Logger.error('DECLARE-FAIL[%s][%s]', gameCode, playerId, {
+					error: { ...err, msg: err.message }
+				})
 				LiteratureNamespace.to(socket.id).emit('play-declare', {
 					code: err.code,
 					name: err.name,
-					message: err.message
+					message:
+						err.name !== 'TypeError'
+							? err.message
+							: 'Requested action failed.'
 				})
 			}
 		})
@@ -321,18 +367,24 @@ var openSocketChannels = (): void => {
 					type: 'TRANSFER'
 				})
 			} catch (err) {
+				Logger.error('TRANSFER-FAIL[%s][%s]', gameCode, fromId, {
+					error: { ...err, msg: err.message }
+				})
 				LiteratureNamespace.to(socket.id).emit('play-transfer', {
 					code: err.code,
 					name: err.name,
-					message: err.message
+					message:
+						err.name !== 'TypeError'
+							? err.message
+							: 'Requested action failed.'
 				})
 			}
 		})
 
 		socket.on('disconnect', (reason) => {
-			// console.log('Disconnected from: ' + socket.id)
 			for (let [key, value] of socketMap.entries()) {
 				if (value === socket.id) {
+					Logger.info('DISCONNECT[%s]', key)
 					socketMap.delete(key)
 				}
 			}

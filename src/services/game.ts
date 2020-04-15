@@ -3,9 +3,11 @@ import { GameModel, PlayerModel } from '../models'
 
 class DatabaseError extends Error {
 	public code: number
-	constructor(code: number, message: string) {
+	public scope: string
+	constructor(code: number, scope: string, message: string) {
 		super(message)
 		this.code = code
+		this.scope = scope
 		Object.setPrototypeOf(this, new.target.prototype)
 		this.name = DatabaseError.name
 	}
@@ -28,9 +30,13 @@ var create = async (game: Game, owner: Player, createdAt: Date) => {
 	try {
 		var ownerDocument = await PlayerModel.findById(owner.id)
 		if (!ownerDocument)
-			throw new DatabaseError(500, 'GET OWNER: Player does not exist')
+			throw new DatabaseError(
+				500,
+				'GET-GAME-OWNER',
+				'Player does not exist'
+			)
 	} catch (err) {
-		throw new DatabaseError(500, 'GET OWNER: Unable to get Player')
+		throw new DatabaseError(500, 'GET-GAME-OWNER', 'Unable to get Player')
 	}
 
 	gameObject.owner = ownerDocument
@@ -38,9 +44,9 @@ var create = async (game: Game, owner: Player, createdAt: Date) => {
 	try {
 		var gameData = await gameObject.save()
 		if (!gameData)
-			throw new DatabaseError(500, 'SAVE GAME: Unable to save game')
+			throw new DatabaseError(500, 'SAVE-GAME', 'Unable to save game')
 	} catch (err) {
-		throw new DatabaseError(500, 'SAVE GAME: Unable to save game')
+		throw new DatabaseError(500, 'SAVE-GAME', 'Unable to save game')
 	}
 
 	return gameData
@@ -50,17 +56,29 @@ var assignOwner = async (gameId: string, ownerId: string) => {
 	try {
 		var gameObject = await GameModel.findById(gameId)
 		if (!gameObject)
-			throw new DatabaseError(500, 'GET OWNER: Game does not exist')
+			throw new DatabaseError(
+				500,
+				'ASSIGN-GAME-OWNER',
+				'Game does not exist'
+			)
 	} catch (err) {
-		throw new DatabaseError(500, 'GET OWNER: Unable to get Game')
+		throw new DatabaseError(500, 'ASSIGN-GAME-OWNER', 'Game does not exist')
 	}
 
 	try {
 		var ownerDocument = await PlayerModel.findById(ownerId)
 		if (!ownerDocument)
-			throw new DatabaseError(500, 'GET OWNER: Player does not exist')
+			throw new DatabaseError(
+				500,
+				'ASSIGN-GAME-OWNER',
+				'Player does not exist'
+			)
 	} catch (err) {
-		throw new DatabaseError(500, 'GET OWNER: Unable to get Player')
+		throw new DatabaseError(
+			500,
+			'ASSIGN-GAME-OWNER',
+			'Player does not exist'
+		)
 	}
 
 	gameObject.owner = ownerDocument
@@ -68,9 +86,13 @@ var assignOwner = async (gameId: string, ownerId: string) => {
 	try {
 		var gameData = await gameObject.save()
 		if (!gameData)
-			throw new DatabaseError(500, 'SAVE GAME: Unable to save game')
+			throw new DatabaseError(
+				500,
+				'ASSIGN-GAME-OWNER',
+				'Unable to save game'
+			)
 	} catch (err) {
-		throw new DatabaseError(500, 'SAVE GAME: Unable to save game')
+		throw new DatabaseError(500, 'ASSIGN-GAME-OWNER', 'Unable to save game')
 	}
 }
 
@@ -81,12 +103,14 @@ var addPlayer = async (gameId: string, playerId: string) => {
 		if (!game || !player)
 			throw new DatabaseError(
 				500,
-				'ADD PLAYER: Requested object does not exist'
+				'ADD-PLAYER',
+				'Player or Game does not exist'
 			)
 	} catch (err) {
 		throw new DatabaseError(
 			500,
-			'ADD PLAYER: Unable to get requested object'
+			'ADD-PLAYER',
+			'Player or Game does not exist'
 		)
 	}
 	player.game = game
@@ -105,10 +129,11 @@ var removePlayer = async (playerId: string) => {
 		if (!player)
 			throw new DatabaseError(
 				500,
-				'REMOVE PLAYER: Requested player does not exist'
+				'REMOVE-PLAYER',
+				'Requested player does not exist'
 			)
 	} catch (err) {
-		throw new DatabaseError(500, 'REMOVE PLAYER: Unable to update game')
+		throw new DatabaseError(500, 'REMOVE-PLAYER', 'Unable to update game')
 	}
 }
 
@@ -129,9 +154,9 @@ var startGame = async (
 			{ new: true }
 		)
 		if (!game)
-			throw new DatabaseError(500, 'START GAME: Game does not exist')
+			throw new DatabaseError(500, 'START-GAME', 'Game does not exist')
 	} catch (err) {
-		throw new DatabaseError(500, 'START GAME: Unable to update Game')
+		throw new DatabaseError(500, 'START-GAME', 'Unable to update Game')
 	}
 }
 
@@ -145,9 +170,14 @@ var updateState = async (id: string, isActive: boolean) => {
 			{ new: true }
 		)
 
-		if (!game) throw new DatabaseError(500, 'UPDATE: Game does not exist')
+		if (!game)
+			throw new DatabaseError(500, 'UPDATE-STATE', 'Game does not exist')
 	} catch (err) {
-		throw new DatabaseError(500, 'UPDATE: Game could not be updated')
+		throw new DatabaseError(
+			500,
+			'UPDATE-STATE',
+			'Game could not be updated'
+		)
 	}
 }
 
@@ -161,9 +191,10 @@ var updateTurn = async (id: string, currentTurn: number) => {
 			{ new: true }
 		)
 
-		if (!game) throw new DatabaseError(500, 'UPDATE: Game does not exist')
+		if (!game)
+			throw new DatabaseError(500, 'UPDATE-TURN', 'Game does not exist')
 	} catch (err) {
-		throw new DatabaseError(500, 'UPDATE: Game could not be updated')
+		throw new DatabaseError(500, 'UPDATE-TURN', 'Game could not be updated')
 	}
 }
 
@@ -177,9 +208,10 @@ var updatePile = async (id: string, pile: string[]) => {
 			{ new: true }
 		)
 
-		if (!game) throw new DatabaseError(500, 'UPDATE: Game does not exist')
+		if (!game)
+			throw new DatabaseError(500, 'UPDATE-PILE', 'Game does not exist')
 	} catch (err) {
-		throw new DatabaseError(500, 'UPDATE: Game could not be updated')
+		throw new DatabaseError(500, 'UPDATE-PILE', 'Game could not be updated')
 	}
 }
 
@@ -193,9 +225,10 @@ var updateLogs = async (id: string, logs: string[]) => {
 			{ new: true }
 		)
 
-		if (!game) throw new DatabaseError(500, 'UPDATE: Game does not exist')
+		if (!game)
+			throw new DatabaseError(500, 'UPDATE-LOGS', 'Game does not exist')
 	} catch (err) {
-		throw new DatabaseError(500, 'UPDATE: Game could not be updated')
+		throw new DatabaseError(500, 'UPDATE-LOGS', 'Game could not be updated')
 	}
 }
 
@@ -209,27 +242,21 @@ var updateAdditionalData = async (id: string, additionalData) => {
 			{ new: true }
 		)
 
-		if (!game) throw new DatabaseError(500, 'UPDATE: Game does not exist')
+		if (!game)
+			throw new DatabaseError(500, 'UPDATE-DATA', 'Game does not exist')
 	} catch (err) {
-		throw new DatabaseError(500, 'UPDATE: Game could not be updated')
+		throw new DatabaseError(500, 'UPDATE-DATA', 'Game could not be updated')
 	}
 }
 
 var getById = async (id: string) => {
 	try {
-		var g = await GameModel.findById(id).populate(
-			'players',
-			'-_id name position score hand'
-		)
-		if (!g) throw new DatabaseError(500, 'GET GAME: Game does not exist')
+		var g = await GameModel.findById(id)
+		if (!g) throw new DatabaseError(500, 'GET-GAME', 'Game does not exist')
 		g = g.toObject()
 		g.id = id
-		g.players.forEach((element) => {
-			element.count = element.hand.length
-			delete element['hand']
-		})
 	} catch (err) {
-		throw new DatabaseError(500, 'GET GAME: Could not get Game')
+		throw new DatabaseError(500, 'GET-GAME', 'Could not get Game')
 	}
 	return g
 }
@@ -247,7 +274,8 @@ var pluckById = async (id: string) => {
 				minPlayers: 1,
 				additionalData: 1
 			})
-		if (!g) throw new DatabaseError(500, 'PLUCK GAME: Game does not exist')
+		if (!g)
+			throw new DatabaseError(500, 'PLUCK-GAME', 'Game does not exist')
 		g = g.toObject()
 		delete g['_id']
 		g.owner = g.owner.position
@@ -257,7 +285,7 @@ var pluckById = async (id: string) => {
 			delete element['hand']
 		})
 	} catch (err) {
-		throw new DatabaseError(500, 'PLUCK GAME: Could not get Game')
+		throw new DatabaseError(500, 'PLUCK-GAME', 'Could not get Game')
 	}
 	return g
 }
@@ -266,7 +294,7 @@ var destroy = async (id: string) => {
 	try {
 		var g = await GameModel.findByIdAndDelete(id)
 	} catch (err) {
-		throw new DatabaseError(500, 'DESTROY GAME: Unable to delete')
+		throw new DatabaseError(500, 'DESTROY-GAME', 'Unable to delete')
 	}
 }
 

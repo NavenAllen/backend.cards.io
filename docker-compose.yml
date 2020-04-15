@@ -5,6 +5,8 @@ services:
     image: cards-backend
     restart: always
     build: .
+    volumes:
+      - ./logs:/usr/src/app/logs
     ports:
       - "42069:3000"
     depends_on:
@@ -16,6 +18,6 @@ services:
     command: ["-f", "/etc/mongodb.conf"]
     volumes:
       - ./docker/mongo/db.conf:/etc/mongodb.conf
-      - ./docker/db:/data/db
+      - ./docker/mongo/db:/data/db
     ports:
       - "42070:27017"

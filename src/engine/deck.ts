@@ -1,8 +1,10 @@
 class DeckError extends Error {
 	public code: number
-	constructor(code: number, message: string) {
+	public scope: string
+	constructor(code: number, scope: string, message: string) {
 		super(message)
 		this.code = code
+		this.scope = scope
 		Object.setPrototypeOf(this, new.target.prototype)
 		this.name = DeckError.name
 	}
@@ -18,7 +20,7 @@ export class Deck {
 	) {
 		exclusions.filter((e) => {
 			if (!e.match(/([2-9]|10|[JQKA])[SCDH]/)) {
-				throw new DeckError(400, 'INIT: Invalid Card => ' + e)
+				throw new DeckError(400, 'INIT', 'Invalid Card => ' + e)
 			}
 		})
 
@@ -91,7 +93,7 @@ export class Deck {
 			cardCount = Math.floor(this._cards.length / playerCount)
 			enablePile = false
 		} else if (cardCount * playerCount > this._cards.length) {
-			throw new DeckError(400, 'DEAL: Not enough cards in deck')
+			throw new DeckError(400, 'DEAL', 'Not enough cards in deck')
 		}
 
 		this.shuffle()

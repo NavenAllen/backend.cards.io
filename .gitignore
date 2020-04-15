@@ -1,4 +1,5 @@
 node_modules/
 dist/
 data/
-docker/db/
+docker/mongo/db/
+logs/

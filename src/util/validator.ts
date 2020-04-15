@@ -2,9 +2,11 @@ import { Game, Player } from '../engine'
 
 class ValidationError extends Error {
 	public code: number
-	constructor(code: number, message: string) {
+	public scope: string
+	constructor(code: number, scope: string, message: string) {
 		super(message)
 		this.code = code
+		this.scope = scope
 		Object.setPrototypeOf(this, new.target.prototype)
 		this.name = ValidationError.name
 	}
@@ -12,25 +14,30 @@ class ValidationError extends Error {
 
 const isMyTurn = (game: Game, player: Player) => {
 	if (game.currentTurn !== player.position)
-		throw new ValidationError(403, 'INVALID: Not your turn')
+		throw new ValidationError(403, 'VALIDATOR', 'Not your turn')
 }
 
 const areSameTeam = (p1: Player, p2: Player) => {
 	if (p1.position % 2 !== p2.position % 2)
-		throw new ValidationError(403, 'INVALID: Not the same team')
+		throw new ValidationError(403, 'VALIDATOR', 'Not the same team')
 }
 
 const isOwner = (game: Game, player: Player) => {
 	if (game.owner.id !== player.id)
 		throw new ValidationError(
 			401,
-			"INVALID: You aren't the owner of the game"
+			'VALIDATOR',
+			"You aren't the owner of the game"
 		)
 }
 
 const isNotOwner = (game: Game, player: Player) => {
 	if (game.owner.id === player.id)
-		throw new ValidationError(401, 'INVALID: You are the owner of the game')
+		throw new ValidationError(
+			401,
+			'VALIDATOR',
+			'You are the owner of the game'
+		)
 }
 
 const isPositionAvailable = (game: Game, position: number) => {
@@ -39,7 +46,11 @@ const isPositionAvailable = (game: Game, position: number) => {
 			return p.position === position
 		})
 	)
-		throw new ValidationError(400, 'INVALID: The position is already taken')
+		throw new ValidationError(
+			400,
+			'VALIDATOR',
+			'The position is already taken'
+		)
 }
 
 export { isMyTurn, areSameTeam, isOwner, isPositionAvailable, isNotOwner }

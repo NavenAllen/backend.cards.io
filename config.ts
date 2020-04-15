@@ -8,6 +8,9 @@ let config = {
 	},
 	express: {
 		port: 3000
+	},
+	winston: {
+		directory: 'logs'
 	}
 }
 

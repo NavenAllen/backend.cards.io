@@ -2,9 +2,11 @@ import { Player, Game } from '../../engine'
 
 class ValidationError extends Error {
 	public code: number
-	constructor(code: number, message: string) {
+	public scope: string
+	constructor(code: number, scope: string, message: string) {
 		super(message)
 		this.code = code
+		this.scope = scope
 		Object.setPrototypeOf(this, new.target.prototype)
 		this.name = ValidationError.name
 	}
@@ -54,7 +56,8 @@ const checkSameSet = (declaration: string[][]): string => {
 			if (!baseSet.set.includes(declaration[i][j]))
 				throw new ValidationError(
 					400,
-					'INVALID: Declaration should belong to same set'
+					'LIT-VALIDATOR',
+					'Declaration should belong to same set'
 				)
 
 	return baseSet.name
@@ -62,7 +65,11 @@ const checkSameSet = (declaration: string[][]): string => {
 
 const canAsk = (player: Player, toPlayer: Player, card: string) => {
 	if (player.hand.includes(card))
-		throw new ValidationError(400, 'INVALID: You already have the card')
+		throw new ValidationError(
+			400,
+			'LIT-VALIDATOR',
+			'You already have the card'
+		)
 
 	let baseSet: string[]
 	baseSet = findBaseSet(card).set
@@ -71,7 +78,7 @@ const canAsk = (player: Player, toPlayer: Player, card: string) => {
 		return baseSet.includes(c)
 	})
 	if (intersection.length === 0)
-		throw new ValidationError(400, 'INVALID: No base card')
+		throw new ValidationError(400, 'LIT-VALIDATOR', 'No base card')
 }
 
 const didJustDeclare = (game: Game) => {
@@ -79,7 +86,8 @@ const didJustDeclare = (game: Game) => {
 	if (!lastLog.startsWith('DECLARE') && !lastLog.startsWith('TRANSFER'))
 		throw new ValidationError(
 			403,
-			'INVALID: You can only transfer turn after declaring'
+			'LIT-VALIDATOR',
+			'You can only transfer turn after declaring'
 		)
 }
 
