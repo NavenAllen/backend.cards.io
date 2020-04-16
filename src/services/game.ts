@@ -1,5 +1,6 @@
 import { Game, Player } from '../engine'
 import { GameModel, PlayerModel } from '../models'
+import { ChatService } from '.'
 
 class DatabaseError extends Error {
 	public code: number
@@ -293,6 +294,7 @@ var pluckById = async (id: string) => {
 var destroy = async (id: string) => {
 	try {
 		var g = await GameModel.findByIdAndDelete(id)
+		await ChatService.destroyChats(id)
 	} catch (err) {
 		throw new DatabaseError(500, 'DESTROY-GAME', 'Unable to delete')
 	}

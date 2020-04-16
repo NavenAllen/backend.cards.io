@@ -1,5 +1,6 @@
 import * as GameService from './game'
 import * as PlayerService from './player'
+import * as ChatService from './chat'
 import { config } from '../../config'
 import { Logger } from '../util/logger'
 var MongoClient = require('mongodb').MongoClient
@@ -42,7 +43,6 @@ const setUpdatesCallback = (onGameUpdate, onPlayerUpdate) => {
 				.collection('games')
 				.watch({ fullDocument: 'updateLookup' })
 			gamesChangeStream.on('change', async (change) => {
-				console.log(change)
 				if (change.operationType !== 'delete') {
 					var game = change.fullDocument
 					game = await GameService.pluckById(game._id)
@@ -53,4 +53,4 @@ const setUpdatesCallback = (onGameUpdate, onPlayerUpdate) => {
 	)
 }
 
-export { GameService, PlayerService, setUpdatesCallback }
+export { GameService, PlayerService, ChatService, setUpdatesCallback }

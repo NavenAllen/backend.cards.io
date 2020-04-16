@@ -88,7 +88,8 @@ var openSocketChannels = (): void => {
 							type: 'CONNECT',
 							code: 200,
 							game: response.game,
-							player: response.player
+							player: response.player,
+							chats: response.chats
 						})
 					})
 					.catch((err) => {
@@ -371,6 +372,41 @@ var openSocketChannels = (): void => {
 					error: { ...err, msg: err.message }
 				})
 				LiteratureNamespace.to(socket.id).emit('play-transfer', {
+					code: err.code,
+					name: err.name,
+					message:
+						err.name !== 'TypeError'
+							? err.message
+							: 'Requested action failed.'
+				})
+			}
+		})
+
+		socket.on('chat', (data) => {
+			let gameCode = data.code
+			let pid = data.pid
+			let message = data.message
+
+			try {
+				let game = getGameData(gameCode)
+				let player = game.getPlayerById(pid)
+
+				LiteratureController.addChat(message, game, player)
+				LiteratureNamespace.to(gameCode).emit('chat', {
+					code: 200,
+					data: {
+						message: message,
+						player: {
+							name: player.name,
+							position: player.position
+						}
+					}
+				})
+			} catch (err) {
+				Logger.error('CHAT-FAIL[%s][%s]', gameCode, pid, {
+					error: { ...err, msg: err.message }
+				})
+				LiteratureNamespace.to(socket.id).emit('chat', {
 					code: err.code,
 					name: err.name,
 					message:

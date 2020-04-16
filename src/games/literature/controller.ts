@@ -1,5 +1,5 @@
 import { Deck, Player, Game } from '../../engine'
-import { GameService, PlayerService } from '../../services'
+import { GameService, PlayerService, ChatService } from '../../services'
 import { Logger } from '../../util/logger'
 
 var testLit = async () => {
@@ -16,7 +16,8 @@ var testLit = async () => {
 var handleReconnect = async (id: string) => {
 	let p = await PlayerService.pluckById(id)
 	let g = await GameService.pluckById(p.game)
-	return { player: p, game: g }
+	let c = await ChatService.getAllChats(p.game)
+	return { player: p, game: g, chats: c }
 }
 
 var registerPlayer = async (id: string, name: string, pos: number) => {
@@ -164,6 +165,11 @@ var declareSet = (
 	}
 	game.processRound()
 }
+
+const addChat = (message: string, game: Game, player: Player) => {
+	ChatService.addChat(message, game.id, player.id)
+}
+
 export {
 	handleReconnect,
 	registerPlayer,
@@ -173,5 +179,6 @@ export {
 	startGame,
 	askForCard,
 	transferTurn,
-	declareSet
+	declareSet,
+	addChat
 }
