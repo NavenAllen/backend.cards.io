@@ -95,7 +95,11 @@ var openSocketChannels = (): void => {
 					.catch((err) => {
 						if (err.scope !== 'PLUCK-GAME') {
 							Logger.error('RECONNECT-FAIL[%s]', pid, {
-								error: { ...err, msg: err.message }
+								error: {
+									...err,
+									msg: err.message,
+									stack: err.stack
+								}
 							})
 							LiteratureNamespace.to(socket.id).emit(
 								'game-updates',
@@ -141,7 +145,7 @@ var openSocketChannels = (): void => {
 				})
 			} catch (err) {
 				Logger.error('CREATE-FAIL[%s][%s]', gameCode, playerId, {
-					error: { ...err, msg: err.message }
+					error: { ...err, msg: err.message, stack: err.stack }
 				})
 				LiteratureNamespace.to(socket.id).emit('game-updates', {
 					type: 'CREATE',
@@ -204,7 +208,7 @@ var openSocketChannels = (): void => {
 				})
 			} catch (err) {
 				Logger.error('JOIN-FAIL[%s][%s]', gameCode, playerId, {
-					error: { ...err, msg: err.message }
+					error: { ...err, msg: err.message, stack: err.stack }
 				})
 				LiteratureNamespace.to(socket.id).emit('game-updates', {
 					type: 'JOIN',
@@ -236,7 +240,7 @@ var openSocketChannels = (): void => {
 				})
 			} catch (err) {
 				Logger.error('LEAVE-FAIL[%s][%s]', gameCode, playerId, {
-					error: { ...err, msg: err.message }
+					error: { ...err, msg: err.message, stack: err.stack }
 				})
 				LiteratureNamespace.to(socket.id).emit('game-updates', {
 					type: 'LEAVE',
@@ -267,7 +271,7 @@ var openSocketChannels = (): void => {
 				})
 			} catch (err) {
 				Logger.error('START-FAIL[%s][%s]', gameCode, playerId, {
-					error: { ...err, msg: err.message }
+					error: { ...err, msg: err.message, stack: err.stack }
 				})
 				LiteratureNamespace.to(socket.id).emit('game-updates', {
 					type: 'START',
@@ -304,7 +308,7 @@ var openSocketChannels = (): void => {
 				})
 			} catch (err) {
 				Logger.error('ASK-FAIL[%s][%s]', gameCode, data.fid, {
-					error: { ...err, msg: err.message }
+					error: { ...err, msg: err.message, stack: err.stack }
 				})
 				LiteratureNamespace.to(socket.id).emit('play-ask', {
 					code: err.code,
@@ -335,7 +339,7 @@ var openSocketChannels = (): void => {
 				})
 			} catch (err) {
 				Logger.error('DECLARE-FAIL[%s][%s]', gameCode, playerId, {
-					error: { ...err, msg: err.message }
+					error: { ...err, msg: err.message, stack: err.stack }
 				})
 				LiteratureNamespace.to(socket.id).emit('play-declare', {
 					code: err.code,
@@ -369,7 +373,7 @@ var openSocketChannels = (): void => {
 				})
 			} catch (err) {
 				Logger.error('TRANSFER-FAIL[%s][%s]', gameCode, fromId, {
-					error: { ...err, msg: err.message }
+					error: { ...err, msg: err.message, stack: err.stack }
 				})
 				LiteratureNamespace.to(socket.id).emit('play-transfer', {
 					code: err.code,
