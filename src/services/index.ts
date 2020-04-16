@@ -24,18 +24,19 @@ const setUpdatesCallback = (onGameUpdate, onPlayerUpdate) => {
 				.watch({ fullDocument: 'updateLookup' })
 			playersChangeStream.on('change', async (change) => {
 				var player = change.fullDocument
+				try {
+					var code = (await GameService.getById(player.game)).code
+				} catch (err) {
+					Logger.error('PLAYER-GAME', {
+						error: { ...err, msg: err.message, stack: err.stack }
+					})
+				}
 				player = {
 					id: player._id,
 					name: player.name,
 					hand: player.hand,
 					position: player.position,
 					score: player.score
-				}
-				let code
-				try {
-					code = (await GameService.getById(player.game)).code
-				} catch (err) {
-					code = 'null'
 				}
 				onPlayerUpdate(player, code)
 			})

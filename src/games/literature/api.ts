@@ -59,7 +59,7 @@ var onGameUpdate = (game: any) => {
 
 var getCardValue = (a: string): number => {
 	a = a.slice(0, -1)
-	if (Number(a) !== NaN) return Number(a)
+	if (!isNaN(Number(a))) return Number(a)
 	switch (a) {
 		case 'J':
 			return 11
