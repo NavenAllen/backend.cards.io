@@ -28,23 +28,23 @@ const jok = ['8C', '8D', '8S', '8H', 'JOKER', 'JOKER']
 
 var findBaseSet = (card: string) => {
 	if (card.slice(0, 1) === '8' || card === 'JOKER') {
-		return { set: jok, name: 'Jokers' }
+		return { set: jok, name: 'Jokers', value: 9 }
 	} else if (card.slice(-1) === 'C') {
 		if (Number(card[0]) > 1 && Number(card[0]) < 8)
-			return { set: lc, name: 'Low Clubs' }
-		else return { set: hc, name: 'High Clubs' }
+			return { set: lc, name: 'Low Clubs', value: 1 }
+		else return { set: hc, name: 'High Clubs', value: 5 }
 	} else if (card.slice(-1) === 'D') {
 		if (Number(card[0]) > 1 && Number(card[0]) < 8)
-			return { set: ld, name: 'Low Diamonds' }
-		else return { set: hd, name: 'High Diamonds' }
+			return { set: ld, name: 'Low Diamonds', value: 2 }
+		else return { set: hd, name: 'High Diamonds', value: 6 }
 	} else if (card.slice(-1) === 'S') {
 		if (Number(card[0]) > 1 && Number(card[0]) < 8)
-			return { set: ls, name: 'Low Spades' }
-		else return { set: hs, name: 'High Spades' }
+			return { set: ls, name: 'Low Spades', value: 3 }
+		else return { set: hs, name: 'High Spades', value: 7 }
 	} else {
 		if (Number(card[0]) > 1 && Number(card[0]) < 8)
-			return { set: lh, name: 'Low Hearts' }
-		else return { set: hh, name: 'High Hearts' }
+			return { set: lh, name: 'Low Hearts', value: 4 }
+		else return { set: hh, name: 'High Hearts', value: 8 }
 	}
 }
 
@@ -91,4 +91,4 @@ const didJustDeclare = (game: Game) => {
 		)
 }
 
-export { canAsk, didJustDeclare, checkSameSet }
+export { canAsk, didJustDeclare, checkSameSet, findBaseSet }

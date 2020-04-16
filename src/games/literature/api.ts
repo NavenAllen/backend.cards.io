@@ -57,7 +57,33 @@ var onGameUpdate = (game: any) => {
 	})
 }
 
+var getCardValue = (a: string): number => {
+	a = a.slice(0, -1)
+	if (Number(a) !== NaN) return Number(a)
+	switch (a) {
+		case 'J':
+			return 11
+		case 'Q':
+			return 12
+		case 'K':
+			return 13
+		case 'A':
+			return 14
+		default:
+			return 15
+	}
+}
+
 var onPlayerUpdate = (player: any, code: string) => {
+	player.hand.sort((a: string, b: string): number => {
+		let aValue = getCardValue(a)
+		let aSet = LiteratureValidator.findBaseSet(a)
+		let bValue = getCardValue(b)
+		let bSet = LiteratureValidator.findBaseSet(b)
+
+		if (aSet.value !== bSet.value) return aSet.value - bSet.value
+		else return aValue - bValue
+	})
 	let socketId = socketMap.get(String(player.id))
 	Logger.info('PLAYER-UPDATE[%s][%s]', code, player.id, player)
 	LiteratureNamespace.to(socketId).emit('player-data', {
