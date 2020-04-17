@@ -50,7 +50,7 @@ var filterLogs = (game: any) => {
 
 var onGameUpdate = (game: any) => {
 	filterLogs(game)
-	Logger.info('GAME-UPDATE[%s]', game.code, game)
+	Logger.info('GAME-UPDATE[%s]', game.code, { game })
 	LiteratureNamespace.to(game.code).emit('game-data', {
 		type: 'GAME',
 		data: game
@@ -74,18 +74,20 @@ var getCardValue = (a: string): number => {
 	}
 }
 
-var onPlayerUpdate = (player: any, code: string) => {
-	player.hand.sort((a: string, b: string): number => {
-		let aValue = getCardValue(a)
-		let aSet = LiteratureValidator.findBaseSet(a)
-		let bValue = getCardValue(b)
-		let bSet = LiteratureValidator.findBaseSet(b)
+var litSort = (a: string, b: string): number => {
+	let aValue = getCardValue(a)
+	let aSet = LiteratureValidator.findBaseSet(a)
+	let bValue = getCardValue(b)
+	let bSet = LiteratureValidator.findBaseSet(b)
 
-		if (aSet.value !== bSet.value) return aSet.value - bSet.value
-		else return aValue - bValue
-	})
+	if (aSet.value !== bSet.value) return aSet.value - bSet.value
+	else return aValue - bValue
+}
+
+var onPlayerUpdate = (player: any, code: string) => {
+	player.hand.sort(litSort)
 	let socketId = socketMap.get(String(player.id))
-	Logger.info('PLAYER-UPDATE[%s][%s]', code, player.id, player)
+	Logger.info('PLAYER-UPDATE[%s][%s]', code, player.id, { player })
 	LiteratureNamespace.to(socketId).emit('player-data', {
 		type: 'PLAYER',
 		data: player
@@ -110,6 +112,7 @@ var openSocketChannels = (): void => {
 						socketMap.set(pid, socket.id)
 						socket.join(response.game.code)
 						filterLogs(response.game)
+						response.player.hand.sort(litSort)
 						LiteratureNamespace.to(socket.id).emit('game-updates', {
 							type: 'CONNECT',
 							code: 200,
@@ -311,7 +314,7 @@ var openSocketChannels = (): void => {
 			}
 		})
 
-		socket.on('play-ask', (data) => {
+		socket.on('play-ask', async (data) => {
 			let card = data.card
 			let gameCode = data.code
 
@@ -322,7 +325,7 @@ var openSocketChannels = (): void => {
 
 				Validator.isMyTurn(game, fromPlayer)
 				LiteratureValidator.canAsk(fromPlayer, toPlayer, card)
-				LiteratureController.askForCard(
+				await LiteratureController.askForCard(
 					game,
 					fromPlayer,
 					toPlayer,
@@ -347,7 +350,7 @@ var openSocketChannels = (): void => {
 			}
 		})
 
-		socket.on('play-declare', (data) => {
+		socket.on('play-declare', async (data) => {
 			let gameCode = data.code
 			let playerId = data.pid
 			let declaration = data.declaration
@@ -358,7 +361,12 @@ var openSocketChannels = (): void => {
 
 				Validator.isMyTurn(game, from)
 				let set = LiteratureValidator.checkSameSet(declaration)
-				LiteratureController.declareSet(game, from, set, declaration)
+				await LiteratureController.declareSet(
+					game,
+					from,
+					set,
+					declaration
+				)
 				LiteratureNamespace.to(socket.id).emit('play-declare', {
 					code: 200,
 					type: 'DECLARE'

@@ -98,10 +98,12 @@ export class Player {
 	updateDetails = (name: string, pos: number) => {
 		this._name = name
 		this._position = pos
+		this._score = 0
 		PlayerService.updateDetails(
 			this._databaseObjectId,
 			this._name,
-			this._position
+			this._position,
+			this._score
 		).catch((err) => {
 			throw err
 		})
@@ -116,16 +118,12 @@ export class Player {
 		return -1
 	}
 
-	add = (card: string): void => {
+	add = async (card: string): Promise<void> => {
 		this._hand.push(card)
-		PlayerService.updateHand(this._databaseObjectId, this._hand).catch(
-			(err) => {
-				throw err
-			}
-		)
+		await PlayerService.updateHand(this._databaseObjectId, this._hand)
 	}
 
-	discard = (card: string): string => {
+	discard = async (card: string): Promise<string> => {
 		const index = this.getIndexOf(card)
 		if (index === -1) {
 			throw new PlayerError(
@@ -135,11 +133,7 @@ export class Player {
 			)
 		} else {
 			let discarded = this._hand.splice(index, 1)[0]
-			PlayerService.updateHand(this._databaseObjectId, this._hand).catch(
-				(err) => {
-					throw err
-				}
-			)
+			await PlayerService.updateHand(this._databaseObjectId, this._hand)
 			return discarded
 		}
 	}

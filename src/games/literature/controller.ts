@@ -79,6 +79,7 @@ var hostGame = async (owner: Player) => {
 		return activePlayers
 	}
 	g.log('CREATE:' + owner.name)
+
 	return g
 }
 
@@ -100,9 +101,10 @@ var startGame = (game: Game) => {
 	game.log('START')
 }
 
-var askForCard = (game: Game, from: Player, to: Player, card: string) => {
+var askForCard = async (game: Game, from: Player, to: Player, card: string) => {
 	try {
-		from.add(to.discard(card))
+		let discarded = await to.discard(card)
+		await from.add(discarded)
 		game.log('TAKE:' + from.name + ':' + to.name + ':' + card)
 		Logger.debug(
 			'[%s] ' + from.name + ' took ' + card + ' from ' + to.name,
@@ -124,7 +126,7 @@ var transferTurn = (game: Game, from: Player, to: Player) => {
 	Logger.debug('[%s] Turn transferred to ' + to.name, game.code)
 }
 
-var declareSet = (
+var declareSet = async (
 	game: Game,
 	player: Player,
 	set: string,
@@ -141,7 +143,8 @@ var declareSet = (
 			if (cardHolder !== currentPos) {
 				successful = false
 			}
-			game.getPlayerByPosition(cardHolder).discard(currentCard)
+			let currentPlayer = game.getPlayerByPosition(cardHolder)
+			await currentPlayer.discard(currentCard)
 		}
 	}
 	if (successful) {

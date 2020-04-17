@@ -30,13 +30,19 @@ var create = async (player: Player, createdAt: Date) => {
 	return p
 }
 
-var updateDetails = async (id: string, name: string, pos: number) => {
+var updateDetails = async (
+	id: string,
+	name: string,
+	pos: number,
+	score: number
+) => {
 	try {
 		var player = await PlayerModel.findByIdAndUpdate(
 			id,
 			{
 				name: name,
-				position: pos
+				position: pos,
+				score: score
 			},
 			{ new: true }
 		)
