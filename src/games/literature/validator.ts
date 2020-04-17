@@ -64,12 +64,26 @@ const checkSameSet = (declaration: string[][]): string => {
 }
 
 const canAsk = (player: Player, toPlayer: Player, card: string) => {
-	if (player.hand.includes(card))
-		throw new ValidationError(
-			400,
-			'LIT-VALIDATOR',
-			'You already have the card'
-		)
+	if (card !== 'JOKER')
+		if (player.hand.includes(card))
+			throw new ValidationError(
+				400,
+				'LIT-VALIDATOR',
+				'You already have the card'
+			)
+		else {
+			let jokerCount = 0
+			player.hand.forEach((card) => {
+				if (card === 'JOKER') jokerCount++
+			})
+			if (jokerCount === 2) {
+				throw new ValidationError(
+					400,
+					'LIT-VALIDATOR',
+					'You already have the card'
+				)
+			}
+		}
 
 	let baseSet: string[]
 	baseSet = findBaseSet(card).set
