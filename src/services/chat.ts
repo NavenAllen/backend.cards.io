@@ -57,7 +57,6 @@ var getAllChats = async (gameId: string) => {
 	var chats = await ChatModel.find({ game: new ObjectId(gameId) })
 		.populate('player', '-_id name position')
 		.select({ message: 1, _id: 0 })
-	console.log(chats)
 	return chats
 }
 
