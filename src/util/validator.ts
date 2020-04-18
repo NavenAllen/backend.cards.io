@@ -12,6 +12,17 @@ class ValidationError extends Error {
 	}
 }
 
+const isValidName = (name) => {
+	var format = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/
+
+	if (format.test(name))
+		throw new ValidationError(
+			400,
+			'VALIDATOR',
+			'Name should not have any special characters'
+		)
+}
+
 const isMyTurn = (game: Game, player: Player) => {
 	if (game.currentTurn !== player.position)
 		throw new ValidationError(403, 'VALIDATOR', 'Not your turn')
@@ -53,4 +64,11 @@ const isPositionAvailable = (game: Game, position: number) => {
 		)
 }
 
-export { isMyTurn, areSameTeam, isOwner, isPositionAvailable, isNotOwner }
+export {
+	isValidName,
+	isMyTurn,
+	areSameTeam,
+	isOwner,
+	isPositionAvailable,
+	isNotOwner
+}

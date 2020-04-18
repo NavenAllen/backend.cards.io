@@ -49,7 +49,12 @@ var findBaseSet = (card: string) => {
 }
 
 const checkSameSet = (declaration: string[][]): string => {
-	let baseCard = declaration[0][0]
+	let baseCard
+	for (let i = 0; i < declaration.length; i++)
+		if (declaration[i][0]) {
+			baseCard = declaration[i][0]
+			break
+		}
 	let baseSet = findBaseSet(baseCard)
 	for (let i = 0; i < declaration.length; i++)
 		for (let j = 0; j < declaration[i].length; j++)

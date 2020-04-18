@@ -153,6 +153,7 @@ var openSocketChannels = (): void => {
 			let playerId = data.pid
 
 			try {
+				Validator.isValidName(playerName)
 				let player = await LiteratureController.registerPlayer(
 					playerId,
 					playerName,
@@ -216,6 +217,7 @@ var openSocketChannels = (): void => {
 			try {
 				let game = getGameData(gameCode)
 
+				Validator.isValidName(playerName)
 				Validator.isPositionAvailable(game, playerPosition)
 				let player = await LiteratureController.registerPlayer(
 					playerId,
