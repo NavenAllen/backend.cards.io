@@ -1,10 +1,10 @@
 let config = {
 	mongodb: {
-		host: 'cards-mongodb',
+		host: 'localhost',
 		port: 27017,
 		authKey: '',
 		db: 'cards-io',
-		replicaSetName: 'my-replica'
+		replicaSetName: 'rs'
 	},
 	express: {
 		port: 3000
