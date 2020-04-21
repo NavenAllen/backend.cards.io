@@ -155,11 +155,27 @@ var declareSet = async (
 			game.code
 		)
 	} else {
-		let opponent = game.getPlayerByPosition(
-			(player.position + 1) % game.players.length
-		)
+		let opponentPosition =
+				player.position === game.players.length
+					? 1
+					: player.position + 1,
+			noCardsCount = 0
+		let opponent = game.getPlayerByPosition(opponentPosition)
 		opponent.score += 1
-		game.currentTurn = opponent.position
+		while (
+			!opponent.hand.length &&
+			noCardsCount < game.players.length / 2
+		) {
+			noCardsCount++
+			opponentPosition = opponentPosition + 2
+			if (opponentPosition === game.players.length + 1)
+				opponentPosition = 1
+			else if (opponentPosition === game.players.length + 2)
+				opponentPosition = 2
+			opponent = game.getPlayerByPosition(opponentPosition)
+		}
+		if (noCardsCount < game.players.length / 2)
+			game.currentTurn = opponent.position
 		game.log('DECLARE:' + player.name + ':' + set + ':INCORRECT')
 		Logger.debug(
 			'[%s] ' + player.name + ' incorrectly declared the ' + set,
