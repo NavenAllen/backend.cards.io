@@ -67,8 +67,13 @@ var hostGame = async (owner: Player) => {
 					isOddDone = isOddDone && current.hand.length === 0
 				}
 			}
-			if (isEvenDone) this.currentTurn = 1
-			else if (isOddDone) this.currentTurn = 2
+			if (isEvenDone && this._currentTurn % 2 === 0)
+				this.currentTurn =
+					this._currentTurn === this._players.length
+						? 1
+						: this._currentTurn + 1
+			else if (isOddDone && this._currentTurn % 2 === 1)
+				this.currentTurn = this._currentTurn + 1
 		}
 	}
 	g.activePlayers = function () {
@@ -156,26 +161,10 @@ var declareSet = async (
 		)
 	} else {
 		let opponentPosition =
-				player.position === game.players.length
-					? 1
-					: player.position + 1,
-			noCardsCount = 0
+			player.position === game.players.length ? 1 : player.position + 1
 		let opponent = game.getPlayerByPosition(opponentPosition)
 		opponent.score += 1
-		while (
-			!opponent.hand.length &&
-			noCardsCount < game.players.length / 2
-		) {
-			noCardsCount++
-			opponentPosition = opponentPosition + 2
-			if (opponentPosition === game.players.length + 1)
-				opponentPosition = 1
-			else if (opponentPosition === game.players.length + 2)
-				opponentPosition = 2
-			opponent = game.getPlayerByPosition(opponentPosition)
-		}
-		if (noCardsCount < game.players.length / 2)
-			game.currentTurn = opponent.position
+		game.currentTurn = opponent.position
 		game.log('DECLARE:' + player.name + ':' + set + ':INCORRECT')
 		Logger.debug(
 			'[%s] ' + player.name + ' incorrectly declared the ' + set,

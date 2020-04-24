@@ -274,13 +274,9 @@ export class Game {
 				if (p.position % 2 == 0) aScore += p.score
 				else bScore += p.score
 			})
-			let winner: string
 			let mod = 0
 			if (bScore > aScore) mod = 1
-			this._players.forEach((p) => {
-				if (p.position % 2 == mod) winner += p.name + '/'
-			})
-			this.log('WINNER:' + winner.slice(0, -1))
+			this.log('WINNER: TEAM: ' + mod)
 		} else {
 			this._players.sort((a, b) => {
 				return b.score - a.score
