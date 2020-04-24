@@ -45,44 +45,7 @@ var hostGame = async (owner: Player) => {
 		isTeamGame,
 		owner
 	)
-	g.decideStarter = function () {
-		this._currentTurn = 1
-	}
-	g.isGameOver = function () {
-		for (let i = 0; i < this._players.length; i++) {
-			if (this._players[i].hand.length > 0) return false
-		}
-		return true
-	}
-	g.processRound = function () {
-		if (this._isGameOver()) this.end()
-		else {
-			let isEvenDone = true,
-				isOddDone = true
-			for (let i = 0; i < this._players.length; i++) {
-				let current = this._players[i]
-				if (current.position % 2 == 0) {
-					isEvenDone = isEvenDone && current.hand.length === 0
-				} else {
-					isOddDone = isOddDone && current.hand.length === 0
-				}
-			}
-			if (isEvenDone && this._currentTurn % 2 === 0)
-				this.currentTurn =
-					this._currentTurn === this._players.length
-						? 1
-						: this._currentTurn + 1
-			else if (isOddDone && this._currentTurn % 2 === 1)
-				this.currentTurn = this._currentTurn + 1
-		}
-	}
-	g.activePlayers = function () {
-		let activePlayers = []
-		this._players.forEach((player) => {
-			if (player.hand.length) activePlayers.push(player)
-		})
-		return activePlayers
-	}
+	setGameFunctions(g)
 	g.log('CREATE:' + owner.name)
 
 	return g
@@ -178,6 +141,47 @@ const addChat = (message: string, game: Game, player: Player) => {
 	ChatService.addChat(message, game.id, player.id)
 }
 
+var setGameFunctions = (game: Game) => {
+	game.decideStarter = function () {
+		this._currentTurn = 1
+	}
+	game.isGameOver = function () {
+		for (let i = 0; i < this._players.length; i++) {
+			if (this._players[i].hand.length > 0) return false
+		}
+		return true
+	}
+	game.processRound = function () {
+		if (this._isGameOver()) this.end()
+		else {
+			let isEvenDone = true,
+				isOddDone = true
+			for (let i = 0; i < this._players.length; i++) {
+				let current = this._players[i]
+				if (current.position % 2 == 0) {
+					isEvenDone = isEvenDone && current.hand.length === 0
+				} else {
+					isOddDone = isOddDone && current.hand.length === 0
+				}
+			}
+			if (isEvenDone && this._currentTurn % 2 === 0)
+				this.currentTurn =
+					this._currentTurn === this._players.length
+						? 1
+						: this._currentTurn + 1
+			else if (isOddDone && this._currentTurn % 2 === 1)
+				this.currentTurn = this._currentTurn + 1
+		}
+	}
+	game.activePlayers = function () {
+		let activePlayers = []
+		this._players.forEach((player) => {
+			if (player.hand.length) activePlayers.push(player)
+		})
+		return activePlayers
+	}
+}
+
 export {
 	handleReconnect,
 	registerPlayer,
@@ -188,5 +192,6 @@ export {
 	askForCard,
 	transferTurn,
 	declareSet,
+	setGameFunctions,
 	addChat
 }

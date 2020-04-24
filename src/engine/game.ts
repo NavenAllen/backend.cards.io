@@ -86,6 +86,7 @@ export class Game {
 		g.currentTurn = obj.currentTurn
 		g.pile = obj.pile
 		g.logs = obj.logs
+		g.id = obj.id
 
 		obj.players.forEach((p) => {
 			g.players.push(Player.fromModelObject(p))
@@ -265,8 +266,6 @@ export class Game {
 	}
 
 	end = async () => {
-		this._isActive = false
-		GameService.updateState(this._databaseObjectId, this._isActive)
 		if (this._isTeamGame) {
 			let aScore = 0,
 				bScore = 0

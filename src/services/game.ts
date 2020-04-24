@@ -262,6 +262,18 @@ var getById = async (id: string) => {
 	return g
 }
 
+var getByCode = async (code: string) => {
+	try {
+		var g = await GameModel.findOne({ code: code })
+			.populate('owner')
+			.populate('players')
+		if (!g) throw new DatabaseError(500, 'GET-GAME', 'Game does not exist')
+	} catch (err) {
+		throw new DatabaseError(500, 'GET-GAME', 'Could not get Game')
+	}
+	return Game.fromModelObject(g)
+}
+
 var pluckById = async (id: string) => {
 	try {
 		var g = await GameModel.findById(id)
@@ -306,6 +318,7 @@ export {
 	addPlayer,
 	removePlayer,
 	getById,
+	getByCode,
 	startGame,
 	updateState,
 	updateTurn,

@@ -4,7 +4,7 @@ import * as LiteratureValidator from './validator'
 import * as Validator from '../../util/validator'
 import { Logger } from '../../util/logger'
 import { Game } from '../../engine'
-import { setUpdatesCallback } from '../../services'
+import { setUpdatesCallback, GameService } from '../../services'
 
 let router = express.Router()
 let LiteratureNamespace
@@ -17,8 +17,14 @@ var setupLiteratureGame = async (NamespaceObject) => {
 	setUpdatesCallback(onGameUpdate, onPlayerUpdate)
 }
 
-var getGameData = (gameCode: string): Game => {
-	return gameMap.get(gameCode)
+var getGameData = async (gameCode: string) => {
+	let game = gameMap.get(gameCode)
+	if (!game) {
+		game = await GameService.getByCode(gameCode)
+		LiteratureController.setGameFunctions(game)
+		setGameData(game)
+	}
+	return game
 }
 
 var setGameData = (game: Game) => {
@@ -192,7 +198,7 @@ var openSocketChannels = (): void => {
 		socket.on('probe', async (data) => {
 			let gameCode = data.code
 			try {
-				let game = getGameData(gameCode)
+				let game = await getGameData(gameCode)
 				let response = game.getSpots()
 
 				LiteratureNamespace.to(socket.id).emit('game-probe', {
@@ -215,7 +221,7 @@ var openSocketChannels = (): void => {
 			let playerId = data.pid
 
 			try {
-				let game = getGameData(gameCode)
+				let game = await getGameData(gameCode)
 
 				Validator.isValidName(playerName)
 				Validator.isPositionAvailable(game, playerPosition)
@@ -258,7 +264,7 @@ var openSocketChannels = (): void => {
 			let playerId = data.pid
 
 			try {
-				let game = getGameData(gameCode)
+				let game = await getGameData(gameCode)
 				let player = game.getPlayerById(playerId)
 
 				let success = await LiteratureController.leaveGame(game, player)
@@ -285,12 +291,12 @@ var openSocketChannels = (): void => {
 			}
 		})
 
-		socket.on('start', (data) => {
+		socket.on('start', async (data) => {
 			let gameCode = data.code
 			let playerId = data.pid
 
 			try {
-				let game = getGameData(gameCode)
+				let game = await getGameData(gameCode)
 				let player = game.getPlayerById(playerId)
 
 				Validator.isOwner(game, player)
@@ -321,7 +327,7 @@ var openSocketChannels = (): void => {
 			let gameCode = data.code
 
 			try {
-				let game = getGameData(gameCode)
+				let game = await getGameData(gameCode)
 				let fromPlayer = game.getPlayerById(data.fid)
 				let toPlayer = game.getPlayerByPosition(data.tpos)
 
@@ -358,7 +364,7 @@ var openSocketChannels = (): void => {
 			let declaration = data.declaration
 
 			try {
-				let game = getGameData(gameCode)
+				let game = await getGameData(gameCode)
 				let from = game.getPlayerById(playerId)
 
 				Validator.isMyTurn(game, from)
@@ -388,13 +394,13 @@ var openSocketChannels = (): void => {
 			}
 		})
 
-		socket.on('play-transfer', (data) => {
+		socket.on('play-transfer', async (data) => {
 			let gameCode = data.code
 			let fromId = data.fid
 			let toPos = data.tpos
 
 			try {
-				let game = getGameData(gameCode)
+				let game = await getGameData(gameCode)
 				let from = game.getPlayerById(fromId)
 
 				Validator.isMyTurn(game, from)
@@ -422,13 +428,13 @@ var openSocketChannels = (): void => {
 			}
 		})
 
-		socket.on('chat', (data) => {
+		socket.on('chat', async (data) => {
 			let gameCode = data.code
 			let pid = data.pid
 			let message = data.message
 
 			try {
-				let game = getGameData(gameCode)
+				let game = await getGameData(gameCode)
 				let player = game.getPlayerById(pid)
 
 				LiteratureController.addChat(message, game, player)
