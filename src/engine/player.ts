@@ -67,6 +67,12 @@ export class Player {
 
 	set position(position: number) {
 		this._position = position
+		PlayerService.updatePosition(
+			this._databaseObjectId,
+			this._position
+		).catch((err) => {
+			throw err
+		})
 	}
 
 	set name(name: string) {

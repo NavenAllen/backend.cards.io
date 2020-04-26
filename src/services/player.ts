@@ -108,6 +108,27 @@ var updateHand = async (id: string, hand: string[]) => {
 	}
 }
 
+var updatePosition = async (id: string, position: number) => {
+	try {
+		var player = await PlayerModel.findByIdAndUpdate(
+			id,
+			{
+				position
+			},
+			{ new: true }
+		)
+
+		if (!player)
+			throw new DatabaseError(500, 'UPDATE-HAND', 'Player does not exist')
+	} catch (err) {
+		throw new DatabaseError(
+			500,
+			'UPDATE-HAND',
+			'Player could not be updated'
+		)
+	}
+}
+
 var getObjectById = async (id: string): Promise<Player> => {
 	try {
 		var p = await PlayerModel.findById(id)
@@ -148,5 +169,6 @@ export {
 	updateDetails,
 	updateHand,
 	updateScore,
+	updatePosition,
 	pluckById
 }

@@ -375,6 +375,26 @@ export class Game {
 		if (this._players.length < this._minPlayers)
 			throw new GameError(403, 'START-GAME', 'Not enough players')
 
+		this._players.sort((a, b) => {
+			return a.position - b.position
+		})
+		let available = [...Array(this._maxPlayers).keys()].map((i) => i + 1)
+		this._players.forEach((p) => {
+			let index = available.indexOf(p.position)
+			if (index !== -1) available.splice(index, 1)
+		})
+		available.sort((a, b) => {
+			return a - b
+		})
+		this._players
+			.filter((a) => a.position > this._minPlayers)
+			.forEach((player) => {
+				if (available.length && player.position > available[0]) {
+					player.position = available[0]
+					available.splice(0, 1)
+				}
+			})
+
 		this._deck
 			.deal(this._players.length, cardCount)
 			.forEach((hand, index) => {
