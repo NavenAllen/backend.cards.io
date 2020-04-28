@@ -159,6 +159,10 @@ export class Game {
 		return this._activePlayers
 	}
 
+	get decideStarter(): Function {
+		return this._decideStarter
+	}
+
 	set currentTurn(pos: number) {
 		this._currentTurn = pos
 		GameService.updateTurn(this._databaseObjectId, this._currentTurn).catch(
