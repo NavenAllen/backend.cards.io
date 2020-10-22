@@ -1,9 +1,10 @@
-## About The Project
+# Cards.io
 
 <p align="center">
-<img src= "https://drive.google.com/uc?export=view&id=1k_WJF9hVjHiYhu9LMxAmrmqKR3AmJAmU"></p>
+<img src= "https://cards.siliconcupcake.me/favicon.png" height="300"></p>
 
-Online card games platform with games:
+Cards.io is an open-source game-engine written for implementing multi-player card-based games.
+Currently, `cards.io` supports the following games:
 * Literature
 
 
@@ -23,9 +24,15 @@ Online card games platform with games:
 ### Project Setup
 
 1. Clone the repository - `git clone https://github.com/NavenAllen/backend.cards.io`
-2. Go to the project directory - `cd backend.cards.io`
-3. Install dependencies - `npm install`
-4. Stop the mongodb service - `service mongod stop`
-5 `mongod --dbpath ./data --replSet "rs"`
-6. Initiate the replica set once while setting up the server - `mongo 'rs.initiate()'`
-7. Start the server - `npm run start`
+1. Go to the project directory - `cd backend.cards.io`
+1. Install dependencies - `npm install`
+1. Stop the mongodb service - `service mongod stop`
+1. Deploy a replica set - `mongod --dbpath ./data --replSet "rs"`
+1. Initiate the replica set once while setting up the server - `mongo 'rs.initiate()'`
+1. Start the server - `npm run start`
+
+## Reporting Issues
+If you think you've found a bug, or something isn't behaving the way you think it should, please raise an [issue](https://github.com/NavenAllen/backend.cards.io/issues) on GitHub.
+
+## Contributing
+All contributions are welcome! We strive to maintain a welcoming and collaborative community. Have a look at the [contributing guidelines](CONTRIBUTING.md), and go ahead!
